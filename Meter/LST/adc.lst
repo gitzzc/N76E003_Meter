@@ -1,0 +1,106 @@
+C51 COMPILER V9.50a   ADC                                                                  11/25/2017 23:49:18 PAGE 1   
+
+
+C51 COMPILER V9.50a, COMPILATION OF MODULE ADC
+OBJECT MODULE PLACED IN .\Output\adc.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE Code\adc.c OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Include) DEFINE(FOSC_16000
+                    -0) DEBUG OBJECTEXTEND PRINT(.\LST\adc.lst) OBJECT(.\Output\adc.obj)
+
+line level    source
+
+   1          #include "N76E003.h"
+   2          #include "SFR_Macro.h"
+   3          #include "Function_define.h"
+   4          #include "Common.h"
+   5          #include "Delay.h"
+   6          
+   7          #include "bike.h"
+   8          #include "adc.h"
+   9          
+  10          uint8_t xdata ucADC_ChannelBuf[] = {0x00,0x08};
+  11          uint16_t xdata uiADC_SampleBuf[sizeof(ucADC_ChannelBuf)][ADC_BUF_LEN];
+  12          
+  13          uint16_t uiBandgap_Voltage,uiVDD_Voltage;
+  14                          
+  15          void ADC_Bypass (void)                                                  // First three times band-gap convert result bypass
+  16          {
+  17   1              unsigned char ozc;
+  18   1              for (ozc=0;ozc<0x03;ozc++)
+  19   1              {
+  20   2                      clr_ADCF;
+  21   2                      set_ADCS;
+  22   2                      while(ADCF == 0);
+  23   2              }
+  24   1      }
+  25                          
+  26          void READ_BANDGAP()                                                             // Read band-gap actually value after UID two byte.
+  27          {                                                                                               // Detail description see datasheet V1.02 band-gap chapter.
+  28   1              uint8_t  BandgapHigh,BandgapLow;
+  29   1              uint16_t Bandgap_Value;                                         // always use double mode define.
+  30   1      
+  31   1              set_IAPEN;
+  32   1              IAPAL = 0x0C;
+  33   1              IAPAH = 0x00;
+  34   1              IAPCN = READ_UID;
+  35   1              set_IAPGO;
+  36   1              BandgapHigh = IAPFD;
+  37   1              
+  38   1              IAPAL = 0x0d;
+  39   1              IAPAH = 0x00;
+  40   1              IAPCN = READ_UID;
+  41   1              set_IAPGO;
+  42   1              BandgapLow = IAPFD;
+  43   1              BandgapLow = BandgapLow&0x0F;
+  44   1              clr_IAPEN;
+  45   1              
+  46   1              Bandgap_Value = ((uint16_t)BandgapHigh<<4)+BandgapLow;
+  47   1              uiBandgap_Voltage = 3072*Bandgap_Value/0x0fff;
+  48   1      }
+  49                                  
+  50          void ADC_Init(void)
+  51          {
+  52   1              READ_BANDGAP();
+  53   1              Enable_ADC_BandGap;                             //Find in "Function_define.h" - "ADC INIT"
+  54   1              ADC_Bypass();
+C51 COMPILER V9.50a   ADC                                                                  11/25/2017 23:49:18 PAGE 2   
+
+  55   1              
+  56   1              Enable_ADC_AIN0;
+  57   1      }
+  58          
+  59          /******************************************************************************
+  60           * FUNCTION_PURPOSE: ADC interrupt Service Routine
+  61           ******************************************************************************/
+  62          void ADC_ISR (void) interrupt 11
+  63          {
+  64   1              static uint8_t ucIndex=0,ucChannel=0;
+  65   1              uint8_t ucAdcrh,ucAdclh;
+  66   1              
+  67   1          clr_ADCF;                               //clear ADC interrupt flag
+  68   1              ucAdcrh = ADCRH;
+  69   1              ucAdclh = ADCRL;
+  70   1              
+  71   1              uiADC_SampleBuf[ucChannel][ucIndex++] = ((uint16_t)ucAdcrh<<8) | ucAdclh;
+  72   1              if ( ucIndex >= ADC_BUF_LEN ){
+  73   2                      ucIndex = 0;
+  74   2                      if ( ++ucChannel >= ContainOf(ucADC_ChannelBuf) )
+  75   2                              ucChannel = 0;
+  76   2                      ADCCON0 = (ADCCON0&0xF0) | ucADC_ChannelBuf[ucChannel];
+  77   2              }
+  78   1      }
+  79          
+  80          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    300    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =    130    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      6    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

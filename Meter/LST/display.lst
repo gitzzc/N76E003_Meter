@@ -1,4 +1,4 @@
-C51 COMPILER V9.50a   DISPLAY                                                              11/23/2017 17:08:05 PAGE 1   
+C51 COMPILER V9.50a   DISPLAY                                                              11/25/2017 23:42:14 PAGE 1   
 
 
 C51 COMPILER V9.50a, COMPILATION OF MODULE DISPLAY
@@ -8,20 +8,26 @@ COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE Code\display.c OPTIMIZE(8,SPEED)
 
 line level    source
 
-   1          #include "stm8s.h"
-*** WARNING C318 IN LINE 1 OF Code\display.c: can't open file 'stm8s.h'
-   2          #include "bike.h"
-*** ERROR C320 IN LINE 267 OF Code\bike.h: "Please select a release!!!"
-*** ERROR C320 IN LINE 273 OF Code\bike.h: "Not defined LCD_TYPE"
-*** ERROR C141 IN LINE 309 OF Code\bike.h: syntax error near 'uint8_t'
-*** ERROR C129 IN LINE 309 OF Code\bike.h: missing ';' before 'bLFlashType'
-   3          
-   4          #if ( defined LCD9040 ) || ( defined LCD5535 )
-                      #include "display_9040.c"
-              #elif ( defined LCD8794GCT )
+   1          #include "bike.h"
+   2          
+   3          #if ( defined LCD9040 ) || ( defined LCD5535 )
+   4                  #include "display_9040.c"
+   5          #elif ( defined LCD8794GCT )
                       #include "display_8794GCT.c"
               #elif ( defined LCD6040 )
                       #include "display_6040.c"
               #endif
 
-C51 COMPILATION COMPLETE.  1 WARNING(S),  4 ERROR(S)
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1001    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     80       7
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

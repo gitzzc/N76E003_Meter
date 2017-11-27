@@ -101,7 +101,7 @@
 //#define JINPENG_4860
 //#define JINPENG_6072
 //#define LCD6040
-//#define LCD9040
+#define LCD9040
 //#define LCD9040_4860
 //#define LCD9040T
 //#define JIKE13050
@@ -304,6 +304,15 @@
 #define DISPLAY_MAX_SPEED	45UL	//40km/h
 #define SPEEDMODE_DEFAULT	1		//1档
 
+
+#define uint8_t 	unsigned char
+#define uint16_t 	unsigned int
+#define uint32_t 	unsigned long
+
+#define int8_t 		signed char
+#define int16_t 	signed int
+#define int32_t 	signed long
+
 /******************************************************************************/
 typedef struct {
     uint8_t bLFlashType	:1;
@@ -368,9 +377,6 @@ extern BIKE_STATUS sBike;
 extern BIKE_CONFIG sConfig;
 extern volatile uint16_t uiSysTick;
 
-uint16_t Get_SysTick(void);
-uint16_t Get_ElapseTick(uint16_t uiPreTick);
-void LRFlashTask(void);
 /******************************************************************************/
 
 #if ( PCB_VER == 0200 )
@@ -404,19 +410,19 @@ void LRFlashTask(void);
 	#define SPEEDV_ADC_CH	ADC1_CHANNEL_3
 	#define SPEEDV_ADC_SCH	ADC1_SCHMITTTRIG_CHANNEL3
 
-	#define V72_PORT		GPIOA
-	#define V72_PIN			GPIO_PIN_2
-	#define V48_PORT		GPIOD
-	#define V48_PIN			GPIO_PIN_3
+	#define V72_PORT		P0
+	#define V72_PIN			1
+	#define V48_PORT		P1
+	#define V48_PIN			2
 
-	#define SPMODE1_PORT	GPIOD
-	#define SPMODE1_PIN		GPIO_PIN_4
-	#define SPMODE2_PORT	GPIOD
-	#define SPMODE2_PIN		GPIO_PIN_5
-	#define SPMODE3_PORT	GPIOA
-	#define SPMODE3_PIN		GPIO_PIN_1
-	#define SPMODE4_PORT	GPIOA
-	#define SPMODE4_PIN		GPIO_PIN_3
+	#define SPMODE1_PORT	P0
+	#define SPMODE1_PIN		0
+	#define SPMODE2_PORT	P1
+	#define SPMODE2_PIN		1
+	#define SPMODE3_PORT	P2
+	#define SPMODE3_PIN		2
+	#define SPMODE4_PORT	P3
+	#define SPMODE4_PIN		3
 	
 	#define NearLight_PORT	GPIOC
 	#define NearLight_PIN	GPIO_PIN_7
@@ -512,6 +518,27 @@ void LRFlashTask(void);
 #define READ_TURN_LEFT()	GPIO_Read(TurnLeft_PORT , TurnLeft_PIN	)
 #define READ_TURN_RIGHT()	GPIO_Read(TurnRight_PORT, TurnRight_PIN )
 #define FEED_DOG()			IWDG_ReloadCounter()
+
+#define 	DISABLE_INTERRUPTS()	EA = 0
+#define 	ENABLE_INTERRUPTS()		EA = 1
+
+void HotReset(void);
+void WriteConfig(void);
+uint16_t Get_SysTick(void);
+uint16_t Get_ElapseTick(uint16_t uiPreTick);
+int32_t NTCtoTemp(int32_t ntc);
+void InitConfig(void);
+uint8_t GetBatStatus(uint16_t uiVol);
+uint8_t GetBatEnergy(uint16_t uiVol);
+void LRFlashTask(void);
+uint8_t MileResetTask(void);
+void MileTask(void);
+uint8_t SpeedCaltTask(void);
+void TimeTask(void);
+void Light_Task(void);
+void GetSysVoltage(void);
+
+
 
 /******************************************************************************/
 

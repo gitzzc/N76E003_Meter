@@ -1,4 +1,4 @@
-C51 COMPILER V9.50a   BL55072                                                              11/23/2017 17:08:05 PAGE 1   
+C51 COMPILER V9.50a   BL55072                                                              11/25/2017 23:50:35 PAGE 1   
 
 
 C51 COMPILER V9.50a, COMPILATION OF MODULE BL55072
@@ -9,174 +9,176 @@ COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE Code\bl55072.c OPTIMIZE(8,SPEED)
 line level    source
 
    1          
-   2          #include "stm8s_i2c.h"
-*** WARNING C318 IN LINE 2 OF Code\bl55072.c: can't open file 'stm8s_i2c.h'
-   3          #include "bl55072.h"
-   4          #include "bike.h"
-*** ERROR C320 IN LINE 267 OF Code\bike.h: "Please select a release!!!"
-*** ERROR C320 IN LINE 273 OF Code\bike.h: "Not defined LCD_TYPE"
-*** ERROR C141 IN LINE 309 OF Code\bike.h: syntax error near 'uint8_t'
-*** ERROR C129 IN LINE 309 OF Code\bike.h: missing ';' before 'bLFlashType'
+   2          #include "bl55072.h"
+   3          #include "bike.h"
+   4          
    5          
-   6          
-   7          /**
-   8            * @brief Initialize the UART mode according to the specified
-   9            *         parameters in the UART_InitTypeDef and initialize the associated handle.
-  10            * @param huart: UART handle.
-  11            * @retval HAL status
-  12            */
-  13          volatile uint16_t  BLTimeout = BL_TIMEOUT;
-  14          
-  15          void BL55072_Config(unsigned char allon)
-  16          {
-  17                  unsigned char BL_Reg[6];
-  18          
-  19                  CLK_PeripheralClockConfig(CLK_PERIPHERAL_I2C, ENABLE);
-  20          
-  21                  GPIO_Init(GPIOB, (GPIO_Pin_TypeDef)(GPIO_PIN_4), GPIO_MODE_OUT_OD_HIZ_SLOW);
-  22                  GPIO_Init(GPIOB, (GPIO_Pin_TypeDef)(GPIO_PIN_5), GPIO_MODE_OUT_OD_HIZ_SLOW);
-  23          
-  24                  BL_Reg[0] = 0xEE;       //ICSET InnerOsc,softrst
-  25                  BL_Reg[1] = 0xF0;       //BLKCTL BlinkingOff
-  26                  BL_Reg[2] = 0xFD;       //DISCTL 50Hz,Line inversion mode,high power mode
-  27                  BL_Reg[3] = 0xEC;       //ICSET InnerOsc
-  28                  BL_Reg[4] = 0xC8;       //MODESET Display on,1/3 bias
-  29                  if ( allon )
-  30                          BL_Reg[5] = 0xFE;       //APCTL Apon
-  31                  else
-  32                          BL_Reg[5] = 0xFC;       //APCTL normal
-  33                  
-  34                  I2C_WriteBuf(BL_ADDR,BL_Reg,6);
-  35          }
-  36          
-  37          unsigned char BL_Write_Data(unsigned char ADSTART,unsigned char LEN, unsigned char * p)
-  38          {
-  39                  unsigned char reg_buf[19];
-  40                  unsigned char i;
-  41                  
-  42                  if ( ADSTART + LEN > 19 ) return 0;
-  43                  
-  44                  reg_buf[0] = 0;
-  45                  for(i=0;i<LEN;i++)
-  46                          reg_buf[i+1] = p[i];
-  47                  
-  48                  return I2C_WriteBuf(BL_ADDR,reg_buf,LEN+1);     
-  49          }
-C51 COMPILER V9.50a   BL55072                                                              11/23/2017 17:08:05 PAGE 2   
+   6          /**
+   7            * @brief Initialize the UART mode according to the specified
+   8            *         parameters in the UART_InitTypeDef and initialize the associated handle.
+   9            * @param huart: UART handle.
+  10            * @retval HAL status
+  11            */
+  12          volatile uint16_t  BLTimeout = BL_TIMEOUT;
+  13          
+  14          void BL55072_Config(unsigned char allon)
+  15          {
+  16   1              unsigned char BL_Reg[6];
+  17   1      
+  18   1              CLK_PeripheralClockConfig(CLK_PERIPHERAL_I2C, ENABLE);
+*** ERROR C202 IN LINE 18 OF Code\bl55072.c: 'CLK_PERIPHERAL_I2C': undefined identifier
+  19   1      
+  20   1              GPIO_Init(GPIOB, (GPIO_Pin_TypeDef)(GPIO_PIN_4), GPIO_MODE_OUT_OD_HIZ_SLOW);
+*** ERROR C202 IN LINE 20 OF Code\bl55072.c: 'GPIOB': undefined identifier
+  21   1              GPIO_Init(GPIOB, (GPIO_Pin_TypeDef)(GPIO_PIN_5), GPIO_MODE_OUT_OD_HIZ_SLOW);
+*** ERROR C202 IN LINE 21 OF Code\bl55072.c: 'GPIOB': undefined identifier
+  22   1      
+  23   1              BL_Reg[0] = 0xEE;       //ICSET InnerOsc,softrst
+  24   1              BL_Reg[1] = 0xF0;       //BLKCTL BlinkingOff
+  25   1              BL_Reg[2] = 0xFD;       //DISCTL 50Hz,Line inversion mode,high power mode
+  26   1              BL_Reg[3] = 0xEC;       //ICSET InnerOsc
+  27   1              BL_Reg[4] = 0xC8;       //MODESET Display on,1/3 bias
+  28   1              if ( allon )
+  29   1                      BL_Reg[5] = 0xFE;       //APCTL Apon
+  30   1              else
+  31   1                      BL_Reg[5] = 0xFC;       //APCTL normal
+  32   1              
+  33   1              I2C_WriteBuf(BL_ADDR,BL_Reg,6);
+  34   1      }
+  35          
+  36          unsigned char BL_Write_Data(unsigned char ADSTART,unsigned char LEN, unsigned char * p)
+  37          {
+  38   1              unsigned char reg_buf[19];
+  39   1              unsigned char i;
+  40   1              
+  41   1              if ( ADSTART + LEN > 19 ) return 0;
+  42   1              
+  43   1              reg_buf[0] = 0;
+  44   1              for(i=0;i<LEN;i++)
+  45   1                      reg_buf[i+1] = p[i];
+  46   1              
+  47   1              return I2C_WriteBuf(BL_ADDR,reg_buf,LEN+1);     
+  48   1      }
+  49          
+  50          unsigned char I2C_WriteBuf(unsigned char chip,unsigned char* buf, unsigned char len)
+  51          {
+C51 COMPILER V9.50a   BL55072                                                              11/25/2017 23:50:35 PAGE 2   
 
-  50          
-  51          unsigned char I2C_WriteBuf(unsigned char chip,unsigned char* buf, unsigned char len)
-  52          {
-  53            unsigned char i = 0;
-  54                  
-  55                  /* Perform a read on SR1 and SR3 register to clear eventually pending flags */
-  56                  (void)I2C->SR1;
-  57                  (void)I2C->SR3;
-  58                  
-  59            //I2C_Cmd( DISABLE);
-  60                  //Delay(50000);
-  61          
-  62                  //I2C_DeInit();   
-  63            I2C_Cmd( ENABLE);
-  64                  I2C_SoftwareResetCmd(ENABLE);
-  65                  I2C_SoftwareResetCmd(DISABLE);
-  66                  I2C_Init(50000, 0xA0, I2C_DUTYCYCLE_2, I2C_ACK_CURR, I2C_ADDMODE_7BIT, 8);
-  67          
-  68                  BLTimeout = BL_TIMEOUT;
-  69                  while(I2C_GetFlagStatus(I2C_FLAG_BUSBUSY)){     if((BLTimeout--) == 0) return 0; }
-  70                  
-  71                  /* Send START condition */
-  72                  I2C_GenerateSTART(ENABLE);
-  73                  /* Test on EV5 and clear it */
-  74                  BLTimeout=BL_TIMEOUT;
-  75                  while(!I2C_CheckEvent(I2C_EVENT_MASTER_MODE_SELECT)) { if((BLTimeout--) == 0) return 0; }
-  76          
-  77                  I2C_Send7bitAddress((uint8_t)chip, I2C_DIRECTION_TX);
-  78                  BLTimeout=BL_TIMEOUT;
-  79                  while(!I2C_CheckEvent( I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED)) {   if((BLTimeout--) == 0) return 0;}
-  80                  
-  81                  for(i=0;i<len;i++) {
-  82                          /* Write data to TXDR */
-  83                          I2C_SendData(buf[i]);
-  84          
-  85                          /* Wait until TXIS flag is set */
-  86                          BLTimeout = BL_TIMEOUT;
-  87                          //while(!I2C_CheckEvent( I2C_FLAG_TRANSFERFINISHED)) { if((BLTimeout--) == 0) return 0; }
-  88                          while(!I2C_CheckEvent( I2C_EVENT_MASTER_BYTE_TRANSMITTED)) { if((BLTimeout--) == 0) return 0;   }
-  89                  }
-  90                  
-  91                  /* Send STOP condition */
-  92                  I2C_GenerateSTOP(ENABLE);
-  93          
-  94                  /* Perform a read on SR1 and SR3 register to clear eventually pending flags */
-  95                  (void)I2C->SR1;
-  96                  (void)I2C->SR3;
-  97          
-  98                  return 1;
-  99          }
- 100          
- 101          unsigned char I2C_ReadBuf(unsigned char chip,unsigned char addr,unsigned char* buf, unsigned char len)
- 102          {
- 103            unsigned char i = 0;
- 104                  
- 105                  //I2C_DeInit();   
- 106            I2C_Cmd( ENABLE);
- 107                  I2C_SoftwareResetCmd(ENABLE);
- 108                  I2C_SoftwareResetCmd(DISABLE);
- 109                  I2C_Init(50000, 0xA0, I2C_DUTYCYCLE_2, I2C_ACK_CURR, I2C_ADDMODE_7BIT, 2);
- 110          
- 111                  BLTimeout = BL_TIMEOUT;
-C51 COMPILER V9.50a   BL55072                                                              11/23/2017 17:08:05 PAGE 3   
+  52   1        unsigned char i = 0;
+  53   1              
+  54   1              /* Perform a read on SR1 and SR3 register to clear eventually pending flags */
+  55   1              (void)I2C->SR1;
+*** ERROR C202 IN LINE 55 OF Code\bl55072.c: 'I2C': undefined identifier
+  56   1              (void)I2C->SR3;
+*** ERROR C202 IN LINE 56 OF Code\bl55072.c: 'I2C': undefined identifier
+  57   1              
+  58   1        //I2C_Cmd( DISABLE);
+  59   1              //Delay(50000);
+  60   1      
+  61   1              //I2C_DeInit();   
+  62   1        I2C_Cmd( ENABLE);
+*** ERROR C202 IN LINE 62 OF Code\bl55072.c: 'ENABLE': undefined identifier
+  63   1              I2C_SoftwareResetCmd(ENABLE);
+*** ERROR C202 IN LINE 63 OF Code\bl55072.c: 'ENABLE': undefined identifier
+  64   1              I2C_SoftwareResetCmd(DISABLE);
+*** ERROR C202 IN LINE 64 OF Code\bl55072.c: 'DISABLE': undefined identifier
+  65   1              I2C_Init(50000, 0xA0, I2C_DUTYCYCLE_2, I2C_ACK_CURR, I2C_ADDMODE_7BIT, 8);
+  66   1      
+  67   1              BLTimeout = BL_TIMEOUT;
+  68   1              while(I2C_GetFlagStatus(I2C_FLAG_BUSBUSY)){     if((BLTimeout--) == 0) return 0; }
+  69   1              
+  70   1              /* Send START condition */
+  71   1              I2C_GenerateSTART(ENABLE);
+  72   1              /* Test on EV5 and clear it */
+  73   1              BLTimeout=BL_TIMEOUT;
+  74   1              while(!I2C_CheckEvent(I2C_EVENT_MASTER_MODE_SELECT)) { if((BLTimeout--) == 0) return 0; }
+  75   1      
+  76   1              I2C_Send7bitAddress((uint8_t)chip, I2C_DIRECTION_TX);
+  77   1              BLTimeout=BL_TIMEOUT;
+  78   1              while(!I2C_CheckEvent( I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED)) {   if((BLTimeout--) == 0) return 0;}
+  79   1              
+  80   1              for(i=0;i<len;i++) {
+  81   2                      /* Write data to TXDR */
+  82   2                      I2C_SendData(buf[i]);
+  83   2      
+  84   2                      /* Wait until TXIS flag is set */
+  85   2                      BLTimeout = BL_TIMEOUT;
+  86   2                      //while(!I2C_CheckEvent( I2C_FLAG_TRANSFERFINISHED)) { if((BLTimeout--) == 0) return 0; }
+  87   2                      while(!I2C_CheckEvent( I2C_EVENT_MASTER_BYTE_TRANSMITTED)) { if((BLTimeout--) == 0) return 0;   }
+  88   2              }
+  89   1              
+  90   1              /* Send STOP condition */
+  91   1              I2C_GenerateSTOP(ENABLE);
+  92   1      
+  93   1              /* Perform a read on SR1 and SR3 register to clear eventually pending flags */
+  94   1              (void)I2C->SR1;
+  95   1              (void)I2C->SR3;
+  96   1      
+  97   1              return 1;
+  98   1      }
+  99          
+ 100          unsigned char I2C_ReadBuf(unsigned char chip,unsigned char addr,unsigned char* buf, unsigned char len)
+ 101          {
+ 102   1        unsigned char i = 0;
+ 103   1              
+ 104   1              //I2C_DeInit();   
+ 105   1        I2C_Cmd( ENABLE);
+ 106   1              I2C_SoftwareResetCmd(ENABLE);
+ 107   1              I2C_SoftwareResetCmd(DISABLE);
+ 108   1              I2C_Init(50000, 0xA0, I2C_DUTYCYCLE_2, I2C_ACK_CURR, I2C_ADDMODE_7BIT, 2);
+C51 COMPILER V9.50a   BL55072                                                              11/25/2017 23:50:35 PAGE 3   
 
- 112                  while(I2C_GetFlagStatus(I2C_FLAG_BUSBUSY)){     if((BLTimeout--) == 0) return 0; }
- 113                  
- 114                  /* Send START condition */
- 115                  I2C_GenerateSTART(ENABLE);
- 116                  /* Test on EV5 and clear it */
- 117                  BLTimeout=BL_TIMEOUT;
- 118                  while(!I2C_CheckEvent(I2C_EVENT_MASTER_MODE_SELECT)) { if((BLTimeout--) == 0) return 0; }
- 119          
- 120                  I2C_Send7bitAddress((uint8_t)chip, I2C_DIRECTION_TX);
- 121                  BLTimeout=BL_TIMEOUT;
- 122                  while(!I2C_CheckEvent( I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED)) {   if((BLTimeout--) == 0) return 0;}
- 123          
- 124                  /* Write data to TXDR */
- 125                  I2C_SendData(addr);
- 126          
- 127                  /* Wait until TXIS flag is set */
- 128                  BLTimeout = BL_TIMEOUT;
- 129                  while(!I2C_CheckEvent( I2C_EVENT_MASTER_BYTE_TRANSMITTED)) { if((BLTimeout--) == 0) return 0;   }
- 130          
- 131                  /* Send START condition */
- 132                  I2C_GenerateSTART(ENABLE);
- 133                  /* Test on EV5 and clear it */
- 134                  BLTimeout=BL_TIMEOUT;
- 135                  while(!I2C_CheckEvent(I2C_EVENT_MASTER_MODE_SELECT)) { if((BLTimeout--) == 0) return 0; }
- 136          
- 137                  I2C_Send7bitAddress((uint8_t)chip, I2C_DIRECTION_RX);
- 138                  BLTimeout=BL_TIMEOUT;
- 139                  while(!I2C_CheckEvent( I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED)) {      if((BLTimeout--) == 0) return 0;}
- 140          
- 141                  for(i=0;i<len;i++) {
- 142                          BLTimeout=BL_TIMEOUT;
- 143                          while ((I2C_GetFlagStatus(I2C_FLAG_TRANSFERFINISHED) == RESET)){ if((BLTimeout--) == 0) return 0;       }; /* 
+ 109   1      
+ 110   1              BLTimeout = BL_TIMEOUT;
+ 111   1              while(I2C_GetFlagStatus(I2C_FLAG_BUSBUSY)){     if((BLTimeout--) == 0) return 0; }
+ 112   1              
+ 113   1              /* Send START condition */
+ 114   1              I2C_GenerateSTART(ENABLE);
+ 115   1              /* Test on EV5 and clear it */
+ 116   1              BLTimeout=BL_TIMEOUT;
+ 117   1              while(!I2C_CheckEvent(I2C_EVENT_MASTER_MODE_SELECT)) { if((BLTimeout--) == 0) return 0; }
+ 118   1      
+ 119   1              I2C_Send7bitAddress((uint8_t)chip, I2C_DIRECTION_TX);
+ 120   1              BLTimeout=BL_TIMEOUT;
+ 121   1              while(!I2C_CheckEvent( I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED)) {   if((BLTimeout--) == 0) return 0;}
+ 122   1      
+ 123   1              /* Write data to TXDR */
+ 124   1              I2C_SendData(addr);
+ 125   1      
+ 126   1              /* Wait until TXIS flag is set */
+ 127   1              BLTimeout = BL_TIMEOUT;
+ 128   1              while(!I2C_CheckEvent( I2C_EVENT_MASTER_BYTE_TRANSMITTED)) { if((BLTimeout--) == 0) return 0;   }
+ 129   1      
+ 130   1              /* Send START condition */
+ 131   1              I2C_GenerateSTART(ENABLE);
+ 132   1              /* Test on EV5 and clear it */
+ 133   1              BLTimeout=BL_TIMEOUT;
+ 134   1              while(!I2C_CheckEvent(I2C_EVENT_MASTER_MODE_SELECT)) { if((BLTimeout--) == 0) return 0; }
+ 135   1      
+ 136   1              I2C_Send7bitAddress((uint8_t)chip, I2C_DIRECTION_RX);
+ 137   1              BLTimeout=BL_TIMEOUT;
+ 138   1              while(!I2C_CheckEvent( I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED)) {      if((BLTimeout--) == 0) return 0;}
+ 139   1      
+ 140   1              for(i=0;i<len;i++) {
+ 141   2                      BLTimeout=BL_TIMEOUT;
+ 142   2                      while ((I2C_GetFlagStatus(I2C_FLAG_TRANSFERFINISHED) == RESET)){ if((BLTimeout--) == 0) return 0;       }; /* 
              -Poll on BTF */
- 144                          /* Read data to TXDR */
- 145                          buf[i] = I2C_ReceiveData();
- 146                  }
- 147          
- 148                  /* Clear ACK */
- 149                  I2C_AcknowledgeConfig(I2C_ACK_NONE);
- 150          
- 151                  /* Send STOP condition */
- 152                  I2C_GenerateSTOP(ENABLE);
- 153          
- 154                  /* Perform a read on SR1 and SR3 register to clear eventually pending flags */
- 155                  (void)I2C->SR1;
- 156                  (void)I2C->SR3;
- 157          
- 158                  return 1;
- 159          }
- 160          
+ 143   2                      /* Read data to TXDR */
+ 144   2                      buf[i] = I2C_ReceiveData();
+ 145   2              }
+ 146   1      
+ 147   1              /* Clear ACK */
+ 148   1              I2C_AcknowledgeConfig(I2C_ACK_NONE);
+ 149   1      
+ 150   1              /* Send STOP condition */
+ 151   1              I2C_GenerateSTOP(ENABLE);
+ 152   1      
+ 153   1              /* Perform a read on SR1 and SR3 register to clear eventually pending flags */
+ 154   1              (void)I2C->SR1;
+ 155   1              (void)I2C->SR3;
+ 156   1      
+ 157   1              return 1;
+ 158   1      }
+ 159          
 
-C51 COMPILATION COMPLETE.  1 WARNING(S),  4 ERROR(S)
+C51 COMPILATION COMPLETE.  0 WARNING(S),  8 ERROR(S)

@@ -22,37 +22,29 @@ Dialog DLL:      TP51.DLL V2.58
  
 <h2>Project:</h2>
 M:\HC\nuvoton\N76E003_Meter\Meter\Meter.uvproj
-Project File Date:  11/23/2017
+Project File Date:  11/24/2017
 
 <h2>Output:</h2>
 Build target 'GPIO'
 compiling GPIO.C...
+Code\GPIO.C(368): warning C206: 'WDG_Config': missing function-prototype
+Code\GPIO.C(378): warning C206: 'GetTemp': missing function-prototype
+Code\GPIO.C(378): warning C206: 'IWDG_ReloadCounter': missing function-prototype
+Code\GPIO.C(381): warning C206: 'Calibration': missing function-prototype
+Code\GPIO.C(402): warning C206: 'GetVolStabed': missing function-prototype
+Code\GPIO.C(402): error C267: 'GetVolStabed': requires ANSI-style prototype
 compiling bike.c...
-Code\bike.h(267): error C320: "Please select a release!!!"
-Code\bike.h(273): error C320: "Not defined LCD_TYPE"
-Code\bike.h(309): error C141: syntax error near 'uint8_t'
-Code\bike.h(309): error C129: missing ';' before 'bLFlashType'
-Code\bike.c(21): warning C318: can't open file 'pcf8563.h'
+Code\bike.c(263): warning C206: 'FLASH_ProgramByte': missing function-prototype
+Code\bike.c(263): error C267: 'FLASH_ProgramByte': requires ANSI-style prototype
 compiling bl55072.c...
-Code\bl55072.c(2): warning C318: can't open file 'stm8s_i2c.h'
-Code\bike.h(267): error C320: "Please select a release!!!"
-Code\bike.h(273): error C320: "Not defined LCD_TYPE"
-Code\bike.h(309): error C141: syntax error near 'uint8_t'
-Code\bike.h(309): error C129: missing ';' before 'bLFlashType'
-compiling display.c...
-Code\display.c(1): warning C318: can't open file 'stm8s.h'
-Code\bike.h(267): error C320: "Please select a release!!!"
-Code\bike.h(273): error C320: "Not defined LCD_TYPE"
-Code\bike.h(309): error C141: syntax error near 'uint8_t'
-Code\bike.h(309): error C129: missing ';' before 'bLFlashType'
-compiling yxt.c...
-Code\yxt.c(1): warning C318: can't open file 'stm8s.h'
-Code\bike.h(267): error C320: "Please select a release!!!"
-Code\bike.h(273): error C320: "Not defined LCD_TYPE"
-Code\bike.h(309): error C141: syntax error near 'uint8_t'
-Code\bike.h(309): error C129: missing ';' before 'bLFlashType'
-compiling Common.c...
-compiling Delay.c...
+Code\bl55072.c(18): error C202: 'CLK_PERIPHERAL_I2C': undefined identifier
+Code\bl55072.c(20): error C202: 'GPIOB': undefined identifier
+Code\bl55072.c(21): error C202: 'GPIOB': undefined identifier
+Code\bl55072.c(55): error C202: 'I2C': undefined identifier
+Code\bl55072.c(56): error C202: 'I2C': undefined identifier
+Code\bl55072.c(62): error C202: 'ENABLE': undefined identifier
+Code\bl55072.c(63): error C202: 'ENABLE': undefined identifier
+Code\bl55072.c(64): error C202: 'DISABLE': undefined identifier
 Target not created.
 </pre>
 </body>

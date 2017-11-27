@@ -15,10 +15,16 @@
   */ 
   
 /* Includes ------------------------------------------------------------------*/
+#include "N76E003.h"
+#include "SFR_Macro.h"
+#include "Function_define.h"
+#include "Common.h"
+#include "Delay.h"
+
+#include "adc.h"
 
 #include "bl55072.h"
 #include "display.h"
-#include "pcf8563.h"
 #include "bike.h"
 #include "YXT.h"
 
@@ -45,7 +51,7 @@ const uint16_t uiBatStatus72[8] = {630,642,653,664,675,687,700,715};
 #endif
 
 BIKE_STATUS sBike;
-__no_init BIKE_CONFIG sConfig;
+BIKE_CONFIG sConfig;
 volatile uint16_t  uiSysTick = 0;
 uint16_t uiSpeedBuf[16];
 uint16_t uiVolBuf[28];
@@ -67,19 +73,7 @@ int GetTemp(void)
 	int32_t slTemp;
 	uint8_t i;
 
-	//GPIO_Init(GPIOD, GPIO_PIN_6, GPIO_MODE_IN_FL_NO_IT);  //Temp
-	//ADC1_DeInit();  
-	ADC1_Init(ADC1_CONVERSIONMODE_CONTINUOUS, ADC1_CHANNEL_6, ADC1_PRESSEL_FCPU_D2, \
-				ADC1_EXTTRIG_TIM, DISABLE, ADC1_ALIGN_RIGHT, ADC1_SCHMITTTRIG_CHANNEL6 ,\
-				DISABLE);
-	ADC1_Cmd(ENABLE);
-	Delay(1000);
-	ADC1_StartConversion(); 
-	while ( ADC1_GetFlagStatus(ADC1_FLAG_EOC) == RESET );  
-	slTemp = ADC1_GetConversionValue();
-	ADC1_Cmd(DISABLE);
-  
-	uiTempBuf[ucIndex++] = slTemp;
+	uiTempBuf[ucIndex++] = uiADC_SampleBuf[0][0];
 	if ( ucIndex >= ContainOf(uiTempBuf) )
 		ucIndex = 0;
 	for(i=0,slTemp=0;i<ContainOf(uiTempBuf);i++)
@@ -104,19 +98,7 @@ uint16_t GetVol(void)
 	uint16_t uiVol;
 	uint8_t i;
 
-	GPIO_Init(GPIOC, GPIO_PIN_4, GPIO_MODE_IN_FL_NO_IT);  //B+  
-	ADC1_DeInit();  
-	ADC1_Init(ADC1_CONVERSIONMODE_CONTINUOUS, ADC1_CHANNEL_2, ADC1_PRESSEL_FCPU_D2, \
-				ADC1_EXTTRIG_TIM, DISABLE, ADC1_ALIGN_RIGHT, ADC1_SCHMITTTRIG_CHANNEL2,\
-				DISABLE);
-	ADC1_Cmd(ENABLE);
-	Delay(5000);  
-	ADC1_StartConversion(); 
-	while ( ADC1_GetFlagStatus(ADC1_FLAG_EOC) == RESET );  
-	uiVol = ADC1_GetConversionValue();
-	ADC1_Cmd(DISABLE);
-
-	uiVolBuf[ucIndex++] = uiVol;
+	uiVolBuf[ucIndex++] = uiADC_SampleBuf[0][0];
 	if ( ucIndex >= ContainOf(uiVolBuf) )
 		ucIndex = 0;
 	for(i=0,uiVol=0;i<ContainOf(uiVolBuf);i++)
@@ -133,22 +115,7 @@ uint8_t GetVolStabed(uint16_t* uiVol)
 	uint16_t uiBuf[32];
 	uint8_t i;
 	
-	//GPIO_Init(GPIOC, GPIO_PIN_4, GPIO_MODE_IN_FL_NO_IT);  //B+  
-	//ADC1_DeInit();  
-	ADC1_Init(ADC1_CONVERSIONMODE_CONTINUOUS, ADC1_CHANNEL_2, ADC1_PRESSEL_FCPU_D2, \
-				ADC1_EXTTRIG_TIM, DISABLE, ADC1_ALIGN_RIGHT, ADC1_SCHMITTTRIG_CHANNEL2,\
-				DISABLE);
-
-	ADC1_Cmd(ENABLE);
-	for(i=0;i<32;i++){
-		Delay(500);  
-		ADC1_StartConversion(); 
-		while ( ADC1_GetFlagStatus(ADC1_FLAG_EOC) == RESET );  
-		uiBuf[i] = ADC1_GetConversionValue();
-	}
-	ADC1_Cmd(DISABLE);
-	
-	*uiVol = (uint32_t)uiBuf[0]*1050UL/1024UL;
+	*uiVol = (uint32_t)uiADC_SampleBuf[0][0]*1050UL/1024UL;
 
 	for(i=0,ulMid=0;i<32;i++)	ulMid += uiBuf[i];
 	ulMid /= 32;
@@ -169,18 +136,7 @@ uint8_t GetSpeedAdj(void)
 	uint16_t uiAdj;
 	uint8_t i;
 
-	ADC1_DeInit();  
-	ADC1_Init(	ADC1_CONVERSIONMODE_CONTINUOUS, SPEEDV_ADJ_CH, ADC1_PRESSEL_FCPU_D2,\
-				ADC1_EXTTRIG_TIM, DISABLE, ADC1_ALIGN_RIGHT, SPEEDV_ADJ_SCH,DISABLE);
-
-	ADC1_Cmd(ENABLE);
-	Delay(1000);  
-	ADC1_StartConversion(); 
-	while ( ADC1_GetFlagStatus(ADC1_FLAG_EOC) == RESET );  
-	uiAdj = ADC1_GetConversionValue();
-	ADC1_Cmd(DISABLE);
-  	
-	uiSpeedBuf[ucIndex++] = uiAdj;
+	uiSpeedBuf[ucIndex++] = uiADC_SampleBuf[0][0];
 	if ( ucIndex >= ContainOf(uiSpeedBuf) )
 		ucIndex = 0;
 
@@ -201,20 +157,7 @@ uint8_t GetSpeed(void)
 	uint16_t uiSpeed;
 	uint8_t i;
 
-	//GPIO_Init(GPIOD, GPIO_PIN_2, GPIO_MODE_IN_FL_NO_IT);
-	//ADC1_DeInit();  
-	ADC1_Init(ADC1_CONVERSIONMODE_CONTINUOUS, SPEEDV_ADC_CH, ADC1_PRESSEL_FCPU_D2, \
-			ADC1_EXTTRIG_TIM, DISABLE, ADC1_ALIGN_RIGHT, SPEEDV_ADC_SCH,\
-			DISABLE);
-
-	ADC1_Cmd(ENABLE);
-	Delay(1000);  
-	ADC1_StartConversion(); 
-	while ( ADC1_GetFlagStatus(ADC1_FLAG_EOC) == RESET );  
-	uiSpeed = ADC1_GetConversionValue();
-	ADC1_Cmd(DISABLE);
-  	
-	uiSpeedBuf[ucIndex++] = uiSpeed;
+	uiSpeedBuf[ucIndex++] = uiADC_SampleBuf[0][0];
 	if ( ucIndex >= ContainOf(uiSpeedBuf) )
 		ucIndex = 0;
 
@@ -242,9 +185,9 @@ uint16_t Get_SysTick(void)
 {
 	uint16_t uiTick;
 	
-	disableInterrupts();
+	DISABLE_INTERRUPTS();
 	uiTick = uiSysTick;
-	enableInterrupts();
+	ENABLE_INTERRUPTS();
 	
 	return uiTick;
 }
@@ -316,8 +259,7 @@ void WriteConfig(void)
 	for(sConfig.ucSum=0,i=0;i<sizeof(BIKE_CONFIG)-1;i++)
 		sConfig.ucSum += cbuf[i];
 		
-	for(i=0;i<sizeof(BIKE_CONFIG);i++)
-		FLASH_ProgramByte(0x4000+i, cbuf[i]);
+	FlashWrite(cbuf,sizeof(BIKE_CONFIG));
 }
 
 void InitConfig(void)
@@ -325,16 +267,15 @@ void InitConfig(void)
 	uint8_t *cbuf = (uint8_t *)&sConfig;
 	uint8_t i,sum;
 
-	for(i=0;i<sizeof(BIKE_CONFIG);i++)
-		cbuf[i] = FLASH_ReadByte(0x4000 + i);
+	FlashRead(cbuf,sizeof(BIKE_CONFIG));
 
 	for(sum=0,i=0;i<sizeof(BIKE_CONFIG)-1;i++)
 		sum += cbuf[i];
 		
 	if (sConfig.ucBike[0] != 'b' || 
-		//sConfig.ucBike[1] != 'i' || 
-		//sConfig.ucBike[2] != 'k' || 
-		//sConfig.ucBike[3] != 'e' || 
+		sConfig.ucBike[1] != 'i' || 
+		sConfig.ucBike[2] != 'k' || 
+		sConfig.ucBike[3] != 'e' || 
 		sum != sConfig.ucSum ){
 		sConfig.uiSysVoltage 	= 60;
 		sConfig.uiVolScale  	= 1000;

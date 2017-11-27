@@ -1,4 +1,4 @@
-C51 COMPILER V9.50a   YXT                                                                  11/23/2017 17:08:06 PAGE 1   
+C51 COMPILER V9.50a   YXT                                                                  11/24/2017 09:02:04 PAGE 1   
 
 
 C51 COMPILER V9.50a, COMPILATION OF MODULE YXT
@@ -62,7 +62,7 @@ line level    source
   47                          YXT_RxBit = 0;
   48                          
   49                          checksum = YXT_Buf[0];
-C51 COMPILER V9.50a   YXT                                                                  11/23/2017 17:08:06 PAGE 2   
+C51 COMPILER V9.50a   YXT                                                                  11/24/2017 09:02:04 PAGE 2   
 
   50                          for(i=1;i<12;i++)
   51                                  checksum ^= YXT_Buf[i];
@@ -126,7 +126,7 @@ line level    source
  109          
  110          void YXT_Task(BIKE_STATUS *bike,BIKE_CONFIG* config)
  111          {
-C51 COMPILER V9.50a   YXT                                                                  11/23/2017 17:08:06 PAGE 3   
+C51 COMPILER V9.50a   YXT                                                                  11/24/2017 09:02:04 PAGE 3   
 
  112                  static unsigned int pre_tick=0;
  113                  uint32_t speed;

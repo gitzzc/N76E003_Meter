@@ -369,6 +369,11 @@
               <FilePath>.\Code\GPIO.C</FilePath>
             </File>
             <File>
+              <FileName>adc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Code\adc.c</FilePath>
+            </File>
+            <File>
               <FileName>bike.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Code\bike.c</FilePath>
@@ -384,9 +389,9 @@
               <FilePath>.\Code\display.c</FilePath>
             </File>
             <File>
-              <FileName>yxt.c</FileName>
+              <FileName>Flash.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Code\yxt.c</FilePath>
+              <FilePath>.\Code\Flash.c</FilePath>
             </File>
           </Files>
         </Group>

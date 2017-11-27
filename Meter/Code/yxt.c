@@ -1,4 +1,3 @@
-#include "stm8s.h"
 #include "yxt.h"
 
 
