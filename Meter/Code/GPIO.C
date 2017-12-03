@@ -29,89 +29,56 @@
 #include "YXT.h"
 
 
-#ifdef JINPENG_4860
-const uint16_t uiBatStatus48[8] = {420,426,432,439,445,451,457,464};
-const uint16_t uiBatStatus60[8] = {520,528,536,542,550,558,566,574};
-const uint16_t uiBatStatus72[8] = {0};
-#elif defined JINPENG_6072
-const uint16_t uiBatStatus48[8] = {0};
-const uint16_t uiBatStatus60[8] = {480,493,506,519,532,545,558,570};
-const uint16_t uiBatStatus72[8] = {550,569,589,608,628,647,667,686};
-#elif defined LCD6040
-const uint16_t uiBatStatus48[] = {425,432,444,456,468};
-const uint16_t uiBatStatus60[] = {525,537,553,566,578};
-const uint16_t uiBatStatus72[] = {630,641,661,681,701};
-#else
-const uint16_t uiBatStatus48[8] = {420,427,435,444,453,462,471,481};
-const uint16_t uiBatStatus60[8] = {520,531,544,556,568,577,587,595};
-const uint16_t uiBatStatus72[8] = {630,642,653,664,675,687,700,715};
-#endif
-
-BIKE_STATUS sBike;
-BIKE_CONFIG sConfig;
-volatile uint16_t  uiSysTick = 0;
-uint16_t uiSpeedBuf[16];
-uint16_t uiVolBuf[28];
-uint16_t uiTempBuf[4];
-
-#if ( TIME_ENABLE == 1 )
-uint8_t ucUart1Buf[16];
-uint8_t ucUart1Index=0;
-#endif
-
-#if 0
-
 /**
   * @brief  Configures the IWDG to generate a Reset if it is not refreshed at the
   *         correct time. 
   * @param  None
   * @retval None
   */
-static void IWDG_Config(void)
+static void WDG_Config(void)
 {
 }
+
+//enum GPIO_PORT = {GPIO0,GPIO1,GPIO2,GPIO3};
+//enum GPIO_PIN  = {PIN0,PIN1,PIN2,PIN3,PIN4,PIN5,PIN6,PIN7};
 
 void GPIO_Init(uint8_t port, uint8_t pin, uint8_t mode)
 {
 	switch ( mode ){
 		case GPIO_QUASI:
 			switch(port){
-				case P0:	P0M1&=~(1<<pin);P0M2&=~(1<<pin);break;
-				case P1:	P1M1&=~(1<<pin);P1M2&=~(1<<pin);break;
-				case P2:	P2M1&=~(1<<pin);P2M2&=~(1<<pin);break;
-				case P3:	P3M1&=~(1<<pin);P3M2&=~(1<<pin);break;
+				case 0x80:	P0M1&=~(1<<pin);P0M2&=~(1<<pin);break;
+				case 0x90:	P1M1&=~(1<<pin);P1M2&=~(1<<pin);break;
+				case 0xB0:	P3M1&=~(1<<pin);P3M2&=~(1<<pin);break;
 				default:	break;
 			}
 			break;
 		case GPIO_PUSH_PULL:
 			switch(port){
-				case P0:	P0M1&=~(1<<pin);P0M2|=(1<<pin);break;
-				case P1:	P1M1&=~(1<<pin);P1M2|=(1<<pin);break;
-				case P2:	P2M1&=~(1<<pin);P2M2|=(1<<pin);break;
-				case P3:	P3M1&=~(1<<pin);P3M2|=(1<<pin);break;
+				case 0x80:	P0M1&=~(1<<pin);P0M2|=(1<<pin);break;
+				case 0x90:	P1M1&=~(1<<pin);P1M2|=(1<<pin);break;
+				case 0xB0:	P3M1&=~(1<<pin);P3M2|=(1<<pin);break;
 				default:	break;
 			}
 			break;
 		case GPIO_INPUT_ONLY:
 			switch(port){
-				case P0:	P0M1|=(1<<pin);P0M2&=~(1<<pin);break;
-				case P1:	P1M1|=(1<<pin);P1M2&=~(1<<pin);break;
-				case P2:	P2M1|=(1<<pin);P2M2&=~(1<<pin);break;
-				case P3:	P3M1|=(1<<pin);P3M2&=~(1<<pin);break;
+				case 0x80:	P0M1|=(1<<pin);P0M2&=~(1<<pin);break;
+				case 0x90:	P1M1|=(1<<pin);P1M2&=~(1<<pin);break;
+				case 0xB0:	P3M1|=(1<<pin);P3M2&=~(1<<pin);break;
 				default:	break;
 			}
 			break;
 		case GPIO_OPEN_DRAIN:
 			switch(port){
-				case P0:	P0M1|=(1<<pin);P0M2|=(1<<pin);break;
-				case P1:	P1M1|=(1<<pin);P1M2|=(1<<pin);break;
-				case P2:	P2M1|=(1<<pin);P2M2|=(1<<pin);break;
-				case P3:	P3M1|=(1<<pin);P3M2|=(1<<pin);break;
+				case 0x80:	P0M1|=(1<<pin);P0M2|=(1<<pin);break;
+				case 0x90:	P1M1|=(1<<pin);P1M2|=(1<<pin);break;
+				case 0xB0:	P3M1|=(1<<pin);P3M2|=(1<<pin);break;
 				default:	break;
 			}
 			break;
 		default : break;
-	}				
+	}	
 }
 
 uint8_t GPIO_Read(uint8_t port, uint8_t pin)
@@ -120,101 +87,7 @@ uint8_t GPIO_Read(uint8_t port, uint8_t pin)
 	return (port>>pin)&0x01;
 }
 
-void GetSysVoltage(void)
-{	
-#if defined BENLING_OUSHANG
-	uint16_t uiVol;
-	for(i=0;i<0xFF;i++){
-		if ( GetVolStabed(&uiVol) && (uiVol > 120) ) break;
-		FEED_DOG();  
-	}
-	if ( 720 <= uiVol && uiVol <= 870 ){
-		sConfig.uiSysVoltage = 72;
-		WriteConfig();
-	} else if ( 480 <= uiVol && uiVol <= 600 ){
-		sConfig.uiSysVoltage = 60;
-		WriteConfig();
-	}
-#elif defined BENLING_BL48_60
-	uint16_t uiVol;
-	for(i=0;i<0xFF;i++){
-		if ( GetVolStabed(&uiVol) && (uiVol > 120) ) break;
-		FEED_DOG();  
-	}
-	if ( 610 <= uiVol && uiVol <= 720 ){
-		sConfig.uiSysVoltage = 60;
-		WriteConfig();
-	}	else if ( 360 <= uiVol && uiVol <= 500 ){
-		sConfig.uiSysVoltage = 48;
-		WriteConfig();
-	}		
-#elif defined BENLING_ZHONGSHA
-	sConfig.uiSysVoltage = 72;
-#elif (defined OUJUN) || (defined OUPAINONG_6072)
-	//GPIO_Init(V72_PORT, V72_PIN, GPIO_INPUT_ONLY);
-	GPIO_Init(V48_PORT, V48_PIN, GPIO_INPUT_ONLY);
-	if ( GPIO_Read(V48_PORT, V48_PIN) == RESET ){
-		sConfig.uiSysVoltage = 72;
-	} else {
-		sConfig.uiSysVoltage = 60;
-	}
-#elif defined OUPAINONG_4860 || defined JIKE13050
-	GPIO_Init(V48_PORT, V48_PIN, GPIO_INPUT_ONLY);
-	if ( GPIO_Read(V48_PORT, V48_PIN) == RESET ){
-		sConfig.uiSysVoltage = 48;
-	} else {
-		sConfig.uiSysVoltage = 60;
-	}
-#elif defined LCD9040_4860
-	GPIO_Init(V48_PORT, V48_PIN, GPIO_INPUT_ONLY);
-	if ( GPIO_Read(V48_PORT, V48_PIN) == RESET ){
-		sConfig.uiSysVoltage = 60;
-	} else {
-		sConfig.uiSysVoltage = 48;
-	}
-#else
-	GPIO_Init(V72_PORT, V72_PIN, GPIO_INPUT_ONLY);
-	GPIO_Init(V48_PORT, V48_PIN, GPIO_INPUT_ONLY);
-	if ( GPIO_Read(V72_PORT, V72_PIN) == RESET ){
-		sConfig.uiSysVoltage = 72;
-	} else {
-		if ( GPIO_Read(V48_PORT, V48_PIN) == RESET ){
-			sConfig.uiSysVoltage = 48;
-		} else {
-			sConfig.uiSysVoltage = 60;
-		}
-	}
-#endif
-}
 
-void Light_Task(void)
-{
-	uint8_t ucSpeedMode;
-
-	if( GPIO_Read(NearLight_PORT,NearLight_PIN) 	== 1 ) sBike.bNearLight = 1; else sBike.bNearLight = 0;
-	//if( GPIO_Read(TurnRight_PORT,TurnRight_PIN) 	== 1 ) sBike.bTurnRight = 1; else sBike.bTurnRight = 0;
-	//if( GPIO_Read(TurnLeft_PORT,TurnLeft_PIN) 	== 1 ) sBike.bTurnLeft  = 1; else sBike.bTurnLeft  = 0;
-	//if( GPIO_Read(Braked_PORT,Braked_PIN)			== 1 ) sBike.bBraked    = 1; else sBike.bBraked    = 0;
-	
-	if ( sBike.bYXTERR ){
-		ucSpeedMode = 0;
-		if( GPIO_Read(SPMODE1_PORT,SPMODE1_PIN) == 1 ) ucSpeedMode |= 1<<0;
-		if( GPIO_Read(SPMODE2_PORT,SPMODE2_PIN) == 1 ) ucSpeedMode |= 1<<1;
-		if( GPIO_Read(SPMODE3_PORT,SPMODE3_PIN) == 1 ) ucSpeedMode |= 1<<2;
-	#ifdef SPMODE4_PORT
-		if( GPIO_Read(SPMODE4_PORT,SPMODE4_PIN) == 1 ) ucSpeedMode |= 1<<3;
-	#endif
-		switch(ucSpeedMode){
-			case 0x01: 	sBike.ucSpeedMode = 1; break;
-			case 0x02: 	sBike.ucSpeedMode = 2; break;
-			case 0x04: 	sBike.ucSpeedMode = 3; break;
-			case 0x08: 	sBike.ucSpeedMode = 4; break;
-			default:	sBike.ucSpeedMode = 0; break;
-		}
-		sBike.ucPHA_Speed= GetSpeed();
-		sBike.ucSpeed 	= (uint32_t)sBike.ucPHA_Speed*1000UL/sConfig.uiSpeedScale;
-	}
-}
 
 #if ( TIME_ENABLE == 1 )
 void InitUART(void)
@@ -318,7 +191,6 @@ void Calibration(void)
 		sBike.bUart = 0;
 #endif
 }
-#endif
 
 #define TIMER0_TH0_1MS	0x05
 #define TIMER0_TL0_1MS	0x35
@@ -368,14 +240,15 @@ void main(void)
 	WDG_Config();
 	Timer0_Init();  
 	HotReset();
-	if ( sBike.bHotReset == 0 ) {
+/*	if ( sBike.bHotReset == 0 ) {
 		BL55072_Config(1);
 	} else
 		BL55072_Config(0);
-
+*/
+	ADC_Init();
 //	for(i=0;i<32;i++){	GetVol();	/*FEED_DOG(); */ }
 //	for(i=0;i<16;i++){	GetSpeed();	/*FEED_DOG(); */ }
-	for(i=0;i<4;i++) {	GetTemp();	FEED_DOG(); }
+//	for(i=0;i<4;i++) {	GetTemp();	FEED_DOG(); }
 
 	InitConfig();
 	Calibration();
@@ -389,14 +262,14 @@ void main(void)
 #endif
 
 #if ( YXT_ENABLE == 1 )
-	YXT_Init();  
+	//YXT_Init();  
 #endif
   
 	ENABLE_INTERRUPTS();
 	
 	if ( sBike.bHotReset == 0 ) {
 		while ( Get_SysTick() < PON_ALLON_TIME ) FEED_DOG();
-		BL55072_Config(0);
+		//BL55072_Config(0);
 	}
 	
 	GetVolStabed(&uiVol);
@@ -429,7 +302,7 @@ void main(void)
 			MileTask(); 
 			
 		#if ( YXT_ENABLE == 1 )
-			YXT_Task(&sBike,&sConfig);  
+			//YXT_Task(&sBike,&sConfig);  
 		#endif
 		
 			SpeedCaltTask();
@@ -451,7 +324,7 @@ void main(void)
 			#endif
 		#endif
 	
-			MenuUpdate(&sBike);
+			//MenuUpdate(&sBike);
 			
 			/* Reload IWDG counter */
 			FEED_DOG();  

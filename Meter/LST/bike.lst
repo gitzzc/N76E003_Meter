@@ -1,10 +1,10 @@
-C51 COMPILER V9.50a   BIKE                                                                 11/25/2017 23:50:34 PAGE 1   
+C51 COMPILER V9.50a   BIKE                                                                 12/04/2017 00:08:34 PAGE 1   
 
 
 C51 COMPILER V9.50a, COMPILATION OF MODULE BIKE
 OBJECT MODULE PLACED IN .\Output\bike.obj
-COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE Code\bike.c OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Include) DEFINE(FOSC_1600
-                    -00) DEBUG OBJECTEXTEND PRINT(.\LST\bike.lst) OBJECT(.\Output\bike.obj)
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE Code\bike.c LARGE BROWSE INCDIR(..\Include) DEFINE(FOSC_160000) DEBUG OBJEC
+                    -TEXTEND PRINT(.\LST\bike.lst) OBJECT(.\Output\bike.obj)
 
 line level    source
 
@@ -32,78 +32,82 @@ line level    source
   22          #include "Delay.h"
   23          
   24          #include "adc.h"
-  25          
-  26          #include "bl55072.h"
-  27          #include "display.h"
-  28          #include "bike.h"
-  29          #include "YXT.h"
-  30          
-  31          /* Private typedef -----------------------------------------------------------*/
-  32          /* Private define ------------------------------------------------------------*/
-  33          /* Private macro -------------------------------------------------------------*/
-  34          /* Private variables ---------------------------------------------------------*/
-  35          #ifdef JINPENG_4860
-              const uint16_t uiBatStatus48[8] = {420,426,432,439,445,451,457,464};
-              const uint16_t uiBatStatus60[8] = {520,528,536,542,550,558,566,574};
-              const uint16_t uiBatStatus72[8] = {0};
+  25          #include "flash.h"
+  26          
+  27          #include "bl55072.h"
+  28          #include "display.h"
+  29          #include "bike.h"
+  30          #include "YXT.h"
+  31          
+  32          
+  33          /* Private typedef -----------------------------------------------------------*/
+  34          /* Private define ------------------------------------------------------------*/
+  35          /* Private macro -------------------------------------------------------------*/
+  36          /* Private variables ---------------------------------------------------------*/
+  37          #ifdef JINPENG_4860
+              const uint16_t code uiBatStatus48[8] = {420,426,432,439,445,451,457,464};
+              const uint16_t code uiBatStatus60[8] = {520,528,536,542,550,558,566,574};
+              const uint16_t code uiBatStatus72[8] = {0};
               #elif defined JINPENG_6072
-              const uint16_t uiBatStatus48[8] = {0};
-              const uint16_t uiBatStatus60[8] = {480,493,506,519,532,545,558,570};
-              const uint16_t uiBatStatus72[8] = {550,569,589,608,628,647,667,686};
+              const uint16_t code uiBatStatus48[8] = {0};
+              const uint16_t code uiBatStatus60[8] = {480,493,506,519,532,545,558,570};
+              const uint16_t code uiBatStatus72[8] = {550,569,589,608,628,647,667,686};
               #elif defined LCD6040
-              const uint16_t uiBatStatus48[] = {425,432,444,456,468};
-              const uint16_t uiBatStatus60[] = {525,537,553,566,578};
-              const uint16_t uiBatStatus72[] = {630,641,661,681,701};
+              const uint16_t code uiBatStatus48[] = {425,432,444,456,468};
+              const uint16_t code uiBatStatus60[] = {525,537,553,566,578};
+              const uint16_t code uiBatStatus72[] = {630,641,661,681,701};
               #else
-  48          const uint16_t uiBatStatus48[8] = {420,427,435,444,453,462,471,481};
-  49          const uint16_t uiBatStatus60[8] = {520,531,544,556,568,577,587,595};
-  50          const uint16_t uiBatStatus72[8] = {630,642,653,664,675,687,700,715};
-  51          #endif
-  52          
-  53          BIKE_STATUS sBike;
-  54          BIKE_CONFIG sConfig;
-C51 COMPILER V9.50a   BIKE                                                                 11/25/2017 23:50:34 PAGE 2   
+  50          const uint16_t code uiBatStatus48[8] = {420,427,435,444,453,462,471,481};
+  51          const uint16_t code uiBatStatus60[8] = {520,531,544,556,568,577,587,595};
+  52          const uint16_t code uiBatStatus72[8] = {630,642,653,664,675,687,700,715};
+  53          #endif
+  54          
+C51 COMPILER V9.50a   BIKE                                                                 12/04/2017 00:08:34 PAGE 2   
 
-  55          volatile uint16_t  uiSysTick = 0;
-  56          uint16_t uiSpeedBuf[16];
-  57          uint16_t uiVolBuf[28];
-  58          uint16_t uiTempBuf[4];
-  59          
-  60          #if ( TIME_ENABLE == 1 )
-              uint8_t ucUart1Buf[16];
-              uint8_t ucUart1Index=0;
+  55          BIKE_STATUS xdata sBike;
+  56          BIKE_CONFIG xdata sConfig;
+  57          volatile uint16_t  uiSysTick = 0;
+  58          uint16_t xdata uiSpeedBuf[16];
+  59          uint16_t xdata uiVolBuf[28];
+  60          uint16_t xdata uiTempBuf[4];
+  61          
+  62          #if ( TIME_ENABLE == 1 )
+              uint8_t xdataucUart1Buf[16];
+              uint8_t xdata ucUart1Index=0;
               #endif
-  64          /* Private function prototypes -----------------------------------------------*/
-  65          /* Private functions ---------------------------------------------------------*/
-  66          /* Public functions ----------------------------------------------------------*/
-  67          
-  68          /*----------------------------------------------------------*/
-  69          
-  70          int GetTemp(void)
-  71          {
-  72   1              static uint8_t ucIndex = 0;
-  73   1              int32_t slTemp;
-  74   1              uint8_t i;
-  75   1      
-  76   1              uiTempBuf[ucIndex++] = uiADC_SampleBuf[0][0];
-  77   1              if ( ucIndex >= ContainOf(uiTempBuf) )
-  78   1                      ucIndex = 0;
-  79   1              for(i=0,slTemp=0;i<ContainOf(uiTempBuf);i++)
-  80   1                      slTemp += uiTempBuf[i];
-  81   1              slTemp /= ContainOf(uiTempBuf);
-  82   1      
-  83   1              //slTemp = 470UL*1024/(1024-slTemp)-470;
-  84   1              //slTemp = NTCtoTemp(slTemp)/10;
-  85   1              //slTemp = ((3600- (long)slTemp * 2905/1024)/10);
+  66          /* Private function prototypes -----------------------------------------------*/
+  67          /* Private functions ---------------------------------------------------------*/
+  68          /* Public functions ----------------------------------------------------------*/
+  69          uint8_t GPIO_Read(uint8_t port, uint8_t pin);
+  70          void GetSysVoltage(void);
+  71          
+  72          /*----------------------------------------------------------*/
+  73          
+  74          int GetTemp(void)
+  75          {
+  76   1              static uint8_t ucIndex = 0;
+  77   1              int32_t slTemp;
+  78   1              uint8_t i;
+  79   1      
+  80   1              uiTempBuf[ucIndex++] = uiADC_SampleBuf[0][0];
+  81   1              if ( ucIndex >= ContainOf(uiTempBuf) )
+  82   1                      ucIndex = 0;
+  83   1              for(i=0,slTemp=0;i<ContainOf(uiTempBuf);i++)
+  84   1                      slTemp += uiTempBuf[i];
+  85   1              slTemp /= ContainOf(uiTempBuf);
   86   1      
-  87   1              slTemp = 10000*1024UL/(1024-slTemp)-10000;
-  88   1              slTemp = NTCtoTemp(slTemp);
-  89   1              if ( slTemp > 999  ) slTemp =  999;
-  90   1              if ( slTemp < -999 ) slTemp = -999;
-  91   1              
-  92   1              return slTemp;
-  93   1      }
-  94          #if 0
+  87   1              //slTemp = 470UL*1024/(1024-slTemp)-470;
+  88   1              //slTemp = NTCtoTemp(slTemp)/10;
+  89   1              //slTemp = ((3600- (long)slTemp * 2905/1024)/10);
+  90   1      
+  91   1              slTemp = 10000*1024UL/(1024-slTemp)-10000;
+  92   1              slTemp = NTCtoTemp(slTemp);
+  93   1              if ( slTemp > 999  ) slTemp =  999;
+  94   1              if ( slTemp < -999 ) slTemp = -999;
+  95   1              
+  96   1              return slTemp;
+  97   1      }
+  98          #if 0
               uint16_t GetVol(void)
               {
                       static uint8_t ucIndex = 0;
@@ -121,29 +125,29 @@ line level    source
                       return uiVol;
               }
               #else
- 112          uint8_t GetVolStabed(uint16_t* uiVol)
- 113          {
- 114   1              uint32_t ulMid;
- 115   1              uint16_t uiBuf[32];
- 116   1              uint8_t i;
-C51 COMPILER V9.50a   BIKE                                                                 11/25/2017 23:50:34 PAGE 3   
+ 116          uint8_t GetVolStabed(uint16_t* uiVol)
+C51 COMPILER V9.50a   BIKE                                                                 12/04/2017 00:08:34 PAGE 3   
 
- 117   1              
- 118   1              *uiVol = (uint32_t)uiADC_SampleBuf[0][0]*1050UL/1024UL;
- 119   1      
- 120   1              for(i=0,ulMid=0;i<32;i++)       ulMid += uiBuf[i];
- 121   1              ulMid /= 32;
- 122   1              for( i=0;i<32;i++){
- 123   2                      if ( ulMid > 5 && ((ulMid *100 / uiBuf[i]) > 101 ||  (ulMid *100 / uiBuf[i]) < 99) )
- 124   2                              return 0;
- 125   2              }
- 126   1              
- 127   1              return 1;
- 128   1      }
- 129          
- 130          #endif
- 131          
- 132          #if ( PCB_VER == 0013 )
+ 117          {
+ 118   1              uint32_t ulMid;
+ 119   1              uint16_t uiBuf[32];
+ 120   1              uint8_t i;
+ 121   1              
+ 122   1              *uiVol = (uint32_t)uiADC_SampleBuf[0][0]*1050UL/1024UL;
+ 123   1      
+ 124   1              for(i=0,ulMid=0;i<32;i++)       ulMid += uiBuf[i];
+ 125   1              ulMid /= 32;
+ 126   1              for( i=0;i<32;i++){
+ 127   2                      if ( ulMid > 5 && ((ulMid *100 / uiBuf[i]) > 101 ||  (ulMid *100 / uiBuf[i]) < 99) )
+ 128   2                              return 0;
+ 129   2              }
+ 130   1              
+ 131   1              return 1;
+ 132   1      }
+ 133          
+ 134          #endif
+ 135          
+ 136          #if ( PCB_VER == 0013 )
               uint8_t GetSpeedAdj(void)
               {
                       static uint8_t ucIndex = 0;
@@ -164,183 +168,266 @@ line level    source
                 return uiAdj;
               }
               #endif
- 153          
- 154          uint8_t GetSpeed(void)
- 155          {
- 156   1              static uint8_t ucIndex = 0;
- 157   1              uint16_t uiSpeed;
- 158   1              uint8_t i;
- 159   1      
- 160   1              uiSpeedBuf[ucIndex++] = uiADC_SampleBuf[0][0];
- 161   1              if ( ucIndex >= ContainOf(uiSpeedBuf) )
- 162   1                      ucIndex = 0;
+ 157          
+ 158          uint8_t GetSpeed(void)
+ 159          {
+ 160   1              static uint8_t ucIndex = 0;
+ 161   1              uint16_t uiSpeed;
+ 162   1              uint8_t i;
  163   1      
- 164   1              for(i=0,uiSpeed=0;i<ContainOf(uiSpeedBuf);i++)
- 165   1                      uiSpeed += uiSpeedBuf[i];
- 166   1              uiSpeed /= ContainOf(uiSpeedBuf);
- 167   1              
- 168   1              if ( sConfig.uiSysVoltage               == 48 ){
- 169   2                      uiSpeed = SPEED_CALC_48V((uint32_t)uiSpeed);
- 170   2              } else if ( sConfig.uiSysVoltage== 60 ) {
- 171   2                      uiSpeed = SPEED_CALC_60V((uint32_t)uiSpeed);
- 172   2              } else if ( sConfig.uiSysVoltage== 72 ) {
- 173   2                      uiSpeed = SPEED_CALC_72V((uint32_t)uiSpeed);
- 174   2              }
- 175   1              if ( uiSpeed > 99 )
- 176   1                      uiSpeed = 99;
- 177   1              
- 178   1        return uiSpeed;
-C51 COMPILER V9.50a   BIKE                                                                 11/25/2017 23:50:34 PAGE 4   
+ 164   1              uiSpeedBuf[ucIndex++] = uiADC_SampleBuf[0][0];
+ 165   1              if ( ucIndex >= ContainOf(uiSpeedBuf) )
+ 166   1                      ucIndex = 0;
+ 167   1      
+ 168   1              for(i=0,uiSpeed=0;i<ContainOf(uiSpeedBuf);i++)
+ 169   1                      uiSpeed += uiSpeedBuf[i];
+ 170   1              uiSpeed /= ContainOf(uiSpeedBuf);
+ 171   1              
+ 172   1              if ( sConfig.uiSysVoltage               == 48 ){
+ 173   2                      uiSpeed = SPEED_CALC_48V((uint32_t)uiSpeed);
+ 174   2              } else if ( sConfig.uiSysVoltage== 60 ) {
+ 175   2                      uiSpeed = SPEED_CALC_60V((uint32_t)uiSpeed);
+ 176   2              } else if ( sConfig.uiSysVoltage== 72 ) {
+ 177   2                      uiSpeed = SPEED_CALC_72V((uint32_t)uiSpeed);
+ 178   2              }
+C51 COMPILER V9.50a   BIKE                                                                 12/04/2017 00:08:34 PAGE 4   
 
- 179   1      }
- 180          
- 181          /*----------------------------------------------------------*/
- 182          
- 183          
- 184          uint16_t Get_SysTick(void)
- 185          {
- 186   1              uint16_t uiTick;
- 187   1              
- 188   1              DISABLE_INTERRUPTS();
- 189   1              uiTick = uiSysTick;
- 190   1              ENABLE_INTERRUPTS();
- 191   1              
- 192   1              return uiTick;
- 193   1      }
- 194          
- 195          uint16_t Get_ElapseTick(uint16_t uiPreTick)
- 196          {
- 197   1              uint16_t uiTick = Get_SysTick();
- 198   1      
- 199   1              if ( uiTick >= uiPreTick )      
- 200   1                      return (uiTick - uiPreTick); 
- 201   1              else 
- 202   1                      return (0xFFFF - uiPreTick + uiTick);
- 203   1      }
- 204          
- 205          const int32_t NTC_B3450[29][2] = 
- 206          {
- 207                  251783, -400,   184546, -350,   137003, -300,   102936, -250,   78219,  -200,
- 208                  60072,  -150,   46601,  -100,   36495,  -50,    28837,  0,              22980,  50,
- 209                  18460,  100,    14942,  150,    12182,  200,    10000,  250,    8263,   300,
- 210                  6869,   350,    5745,   400,    4832,   450,    4085,   500,    3472,   550,
- 211                  2965,   600,    2544,   650,    2193,   700,    1898,   750,    1649,   800,
- 212                  1439,   850,    1260,   900,    1108,   950,    977,    1000
- 213          };
- 214          
- 215          int32_t NTCtoTemp(int32_t ntc)
- 216          {
- 217   1              uint8_t i,j;
- 218   1      
- 219   1              if ( ntc > NTC_B3450[0][0] ){
- 220   2                      return NTC_B3450[0][1];
- 221   2              } else {
- 222   2                      for(i=0;i<sizeof(NTC_B3450)/sizeof(NTC_B3450[0][0])/2-1;i++){
- 223   3                              if ( ntc <= NTC_B3450[i][0] && ntc > NTC_B3450[i+1][0] )
- 224   3                                      break;
- 225   3                      }
- 226   2                      if ( i == sizeof(NTC_B3450)/sizeof(NTC_B3450[0][0])/2-1 ){
- 227   3                              return NTC_B3450[28][1];
- 228   3                      } else {
- 229   3                              for(j=0;j<50;j++){
- 230   4                                      if ( NTC_B3450[i][0] - (j*(NTC_B3450[i][0] - NTC_B3450[i+1][0])/50) <= ntc )
- 231   4                                              return NTC_B3450[i][1] + j;
- 232   4                              }
- 233   3                              return NTC_B3450[i+1][1];
- 234   3                      }
- 235   2              }
- 236   1      }
- 237          
- 238          void HotReset(void)
- 239          {
- 240   1              if (sConfig.ucBike[0] == 'b' &&
-C51 COMPILER V9.50a   BIKE                                                                 11/25/2017 23:50:34 PAGE 5   
+ 179   1              if ( uiSpeed > 99 )
+ 180   1                      uiSpeed = 99;
+ 181   1              
+ 182   1        return uiSpeed;
+ 183   1      }
+ 184          
+ 185          
+ 186          void GetSysVoltage(void)
+ 187          {       
+ 188   1              
+ 189   1      #if defined BENLING_OUSHANG
+                      uint16_t uiVol;
+                      for(i=0;i<0xFF;i++){
+                              if ( GetVolStabed(&uiVol) && (uiVol > 120) ) break;
+                              FEED_DOG();  
+                      }
+                      if ( 720 <= uiVol && uiVol <= 870 ){
+                              sConfig.uiSysVoltage = 72;
+                              WriteConfig();
+                      } else if ( 480 <= uiVol && uiVol <= 600 ){
+                              sConfig.uiSysVoltage = 60;
+                              WriteConfig();
+                      }
+              #elif defined VD61723650
+                      uint16_t uiVol;
+                      for(i=0;i<0xFF;i++){
+                              if ( GetVolStabed(&uiVol) && (uiVol > 120) ) break;
+                              FEED_DOG();  
+                      }
+                      if ( 610 <= uiVol && uiVol <= 720 ){
+                              sConfig.uiSysVoltage = 60;
+                              WriteConfig();
+                      }       else if ( 360 <= uiVol && uiVol <= 500 ){
+                              sConfig.uiSysVoltage = 48;
+                              WriteConfig();
+                      }               
+              #elif defined VD48
+                      sConfig.uiSysVoltage = 48;
+              #elif defined VD60
+                      sConfig.uiSysVoltage = 60;
+              #elif defined VD72
+                      sConfig.uiSysVoltage = 72;
+              #elif defined VD48N72L
+                      if ( GPIO_Read(V48_PORT, V48_PIN) == RESET ){
+                              sConfig.uiSysVoltage = 72;
+                      } else {
+                              sConfig.uiSysVoltage = 60;
+                      }
+              #elif defined VD48L72N
+                      if ( GPIO_Read(V48_PORT, V48_PIN) == RESET ){
+                              sConfig.uiSysVoltage = 48;
+                      } else {
+                              sConfig.uiSysVoltage = 60;
+                      }
+              #elif defined VD48H72N
+                      if ( GPIO_Read(V48_PORT, V48_PIN) == RESET ){
+                              sConfig.uiSysVoltage = 60;
+                      } else {
+                              sConfig.uiSysVoltage = 48;
+                      }
+              #elif defined VD72L48L
+ 240   1              if ( GPIO_Read(V72_PORT, V72_PIN) == RESET ){
+C51 COMPILER V9.50a   BIKE                                                                 12/04/2017 00:08:34 PAGE 5   
 
- 241   1              //      sConfig.ucBike[1] == 'i' && 
- 242   1              //      sConfig.ucBike[2] == 'k' && 
- 243   1                      sConfig.ucBike[3] == 'e' ){
- 244   2                      sBike.bHotReset = 1;
- 245   2              } else {
- 246   2                      sBike.bHotReset = 0;
- 247   2              }
- 248   1      }
- 249          
- 250          void WriteConfig(void)
- 251          {
- 252   1              uint8_t *cbuf = (uint8_t *)&sConfig;
- 253   1              uint8_t i;
+ 241   2                      sConfig.uiSysVoltage = 72;
+ 242   2              } else {
+ 243   2                      if ( GPIO_Read(V48_PORT, V48_PIN) == RESET ){
+ 244   3                              sConfig.uiSysVoltage = 48;
+ 245   3                      } else {
+ 246   3                              sConfig.uiSysVoltage = 60;
+ 247   3                      }
+ 248   2              }
+ 249   1      #else
+                      #error "Please select a system voltage detection method!!!"
+              #endif
+ 252   1      
+ 253   1      
  254   1      
- 255   1              sConfig.ucBike[0] = 'b';
- 256   1              sConfig.ucBike[1] = 'i';
- 257   1              sConfig.ucBike[2] = 'k';
- 258   1              sConfig.ucBike[3] = 'e';
- 259   1              for(sConfig.ucSum=0,i=0;i<sizeof(BIKE_CONFIG)-1;i++)
- 260   1                      sConfig.ucSum += cbuf[i];
- 261   1                      
- 262   1              for(i=0;i<sizeof(BIKE_CONFIG);i++)
- 263   1                      FLASH_ProgramByte(0x4000+i, cbuf[i]);
-*** WARNING C206 IN LINE 263 OF Code\bike.c: 'FLASH_ProgramByte': missing function-prototype
-*** ERROR C267 IN LINE 263 OF Code\bike.c: 'FLASH_ProgramByte': requires ANSI-style prototype
- 264   1      }
+ 255   1      
+ 256   1      
+ 257   1      
+ 258   1      
+ 259   1      
+ 260   1      }
+ 261          
+ 262          
+ 263          /*----------------------------------------------------------*/
+ 264          
  265          
- 266          void InitConfig(void)
+ 266          uint16_t Get_SysTick(void)
  267          {
- 268   1              uint8_t *cbuf = (uint8_t *)&sConfig;
- 269   1              uint8_t i,sum;
- 270   1      
- 271   1              for(i=0;i<sizeof(BIKE_CONFIG);i++)
- 272   1                      cbuf[i] = FLASH_ReadByte(0x4000 + i);
- 273   1      
- 274   1              for(sum=0,i=0;i<sizeof(BIKE_CONFIG)-1;i++)
- 275   1                      sum += cbuf[i];
- 276   1                      
- 277   1              if (sConfig.ucBike[0] != 'b' || 
- 278   1                      //sConfig.ucBike[1] != 'i' || 
- 279   1                      //sConfig.ucBike[2] != 'k' || 
- 280   1                      //sConfig.ucBike[3] != 'e' || 
- 281   1                      sum != sConfig.ucSum ){
- 282   2                      sConfig.uiSysVoltage    = 60;
- 283   2                      sConfig.uiVolScale      = 1000;
- 284   2                      sConfig.uiTempScale     = 1000;
- 285   2                      sConfig.uiSpeedScale    = 1000;
- 286   2                      sConfig.uiYXT_SpeedScale= 1000;
- 287   2      #ifdef SINGLE_TRIP
-                              sConfig.uiSingleTrip    = 1;
+ 268   1              uint16_t uiTick;
+ 269   1              
+ 270   1              DISABLE_INTERRUPTS();
+ 271   1              uiTick = uiSysTick;
+ 272   1              ENABLE_INTERRUPTS();
+ 273   1              
+ 274   1              return uiTick;
+ 275   1      }
+ 276          
+ 277          uint16_t Get_ElapseTick(uint16_t uiPreTick)
+ 278          {
+ 279   1              uint16_t uiTick = Get_SysTick();
+ 280   1      
+ 281   1              if ( uiTick >= uiPreTick )      
+ 282   1                      return (uiTick - uiPreTick); 
+ 283   1              else 
+ 284   1                      return (0xFFFF - uiPreTick + uiTick);
+ 285   1      }
+ 286          
+ 287          const int32_t NTC_B3450[29][2] = 
+ 288          {
+ 289                  251783, -400,   184546, -350,   137003, -300,   102936, -250,   78219,  -200,
+ 290                  60072,  -150,   46601,  -100,   36495,  -50,    28837,  0,              22980,  50,
+ 291                  18460,  100,    14942,  150,    12182,  200,    10000,  250,    8263,   300,
+ 292                  6869,   350,    5745,   400,    4832,   450,    4085,   500,    3472,   550,
+ 293                  2965,   600,    2544,   650,    2193,   700,    1898,   750,    1649,   800,
+ 294                  1439,   850,    1260,   900,    1108,   950,    977,    1000
+ 295          };
+ 296          
+ 297          int32_t NTCtoTemp(int32_t ntc)
+ 298          {
+ 299   1              uint8_t i,j;
+ 300   1      
+ 301   1              if ( ntc > NTC_B3450[0][0] ){
+ 302   2                      return NTC_B3450[0][1];
+C51 COMPILER V9.50a   BIKE                                                                 12/04/2017 00:08:34 PAGE 6   
+
+ 303   2              } else {
+ 304   2                      for(i=0;i<sizeof(NTC_B3450)/sizeof(NTC_B3450[0][0])/2-1;i++){
+ 305   3                              if ( ntc <= NTC_B3450[i][0] && ntc > NTC_B3450[i+1][0] )
+ 306   3                                      break;
+ 307   3                      }
+ 308   2                      if ( i == sizeof(NTC_B3450)/sizeof(NTC_B3450[0][0])/2-1 ){
+ 309   3                              return NTC_B3450[28][1];
+ 310   3                      } else {
+ 311   3                              for(j=0;j<50;j++){
+ 312   4                                      if ( NTC_B3450[i][0] - (j*(NTC_B3450[i][0] - NTC_B3450[i+1][0])/50) <= ntc )
+ 313   4                                              return NTC_B3450[i][1] + j;
+ 314   4                              }
+ 315   3                              return NTC_B3450[i+1][1];
+ 316   3                      }
+ 317   2              }
+ 318   1      }
+ 319          
+ 320          void HotReset(void)
+ 321          {
+ 322   1              if (sConfig.ucBike[0] == 'b' &&
+ 323   1              //      sConfig.ucBike[1] == 'i' && 
+ 324   1              //      sConfig.ucBike[2] == 'k' && 
+ 325   1                      sConfig.ucBike[3] == 'e' ){
+ 326   2                      sBike.bHotReset = 1;
+ 327   2              } else {
+ 328   2                      sBike.bHotReset = 0;
+ 329   2              }
+ 330   1      }
+ 331          
+ 332          void WriteConfig(void)
+ 333          {
+ 334   1              uint8_t *cbuf = (uint8_t *)&sConfig;
+ 335   1              uint8_t i;
+ 336   1      
+ 337   1              sConfig.ucBike[0] = 'b';
+ 338   1              sConfig.ucBike[1] = 'i';
+ 339   1              sConfig.ucBike[2] = 'k';
+ 340   1              sConfig.ucBike[3] = 'e';
+ 341   1              sConfig.uiVersion = SW_VER;
+ 342   1              for(sConfig.ucSum=0,i=0;i<sizeof(BIKE_CONFIG)-1;i++)
+ 343   1                      sConfig.ucSum += cbuf[i];
+ 344   1                      
+ 345   1              FlashWrite(cbuf,sizeof(BIKE_CONFIG));
+ 346   1      }
+ 347          void ResetConfig(void)
+ 348          {
+ 349   1              sConfig.uiSysVoltage    = 60;
+ 350   1              sConfig.uiVolScale      = 1000;
+ 351   1              sConfig.uiTempScale     = 1000;
+ 352   1              sConfig.uiSpeedScale    = 1000;
+ 353   1              sConfig.uiYXT_SpeedScale= 1000;
+ 354   1      #ifdef SINGLE_TRIP
+                      sConfig.uiSingleTrip    = 1;
               #else
- 290   2                      sConfig.uiSingleTrip    = 0;
- 291   2      #endif
- 292   2                      sConfig.ulMile                  = 0;
- 293   2              }
- 294   1      
- 295   1              sBike.ulMile = sConfig.ulMile;
- 296   1      #if ( TIME_ENABLE == 1 )
+ 357   1              sConfig.uiSingleTrip    = 0;
+ 358   1      #endif
+ 359   1              sConfig.ulMile                  = 0;
+ 360   1              WriteConfig();
+ 361   1      }
+ 362          
+ 363          void InitConfig(void)
+ 364          {
+C51 COMPILER V9.50a   BIKE                                                                 12/04/2017 00:08:34 PAGE 7   
+
+ 365   1              uint8_t *cbuf = (uint8_t *)&sConfig;
+ 366   1              uint8_t i,sum;
+ 367   1      
+ 368   1              FlashRead(cbuf,sizeof(BIKE_CONFIG));
+ 369   1      
+ 370   1              for(sum=0,i=0;i<sizeof(BIKE_CONFIG)-1;i++)
+ 371   1                      sum += cbuf[i];
+ 372   1                      
+ 373   1              if (sConfig.ucBike[0] != 'b' || 
+ 374   1                      sConfig.ucBike[1] != 'i' || 
+ 375   1                      sConfig.ucBike[2] != 'k' || 
+ 376   1                      sConfig.ucBike[3] != 'e' || 
+ 377   1                      //sConfig.uiVersion     != SW_VER || 
+ 378   1                      sum != sConfig.ucSum ){
+ 379   2                      ResetConfig();
+ 380   2              }
+ 381   1      
+ 382   1              sBike.ulMile = sConfig.ulMile;
+ 383   1      #if ( TIME_ENABLE == 1 )
                       sBike.bHasTimer = 0;
               #endif
- 299   1              sBike.ulFMile = 0;
- 300   1              sBike.ucSpeedMode = 0;
-C51 COMPILER V9.50a   BIKE                                                                 11/25/2017 23:50:34 PAGE 6   
-
- 301   1              sBike.bYXTERR = 1;
- 302   1      }
- 303          
- 304          uint8_t GetBatStatus(uint16_t uiVol)
- 305          {
- 306   1              uint8_t i;
- 307   1              const uint16_t *uiBatStatus;
- 308   1      
- 309   1              switch ( sConfig.uiSysVoltage ){
- 310   2              case 48:uiBatStatus = uiBatStatus48;break;
- 311   2              case 60:uiBatStatus = uiBatStatus60;break;
- 312   2              case 72:uiBatStatus = uiBatStatus72;break;
- 313   2              default:uiBatStatus = uiBatStatus60;break;
- 314   2              }
- 315   1      
- 316   1              for(i=0;i<ContainOf(uiBatStatus60);i++)
- 317   1                      if ( uiVol < uiBatStatus[i] ) break;
- 318   1              return i;
- 319   1      }
- 320          
- 321          #if 0
+ 386   1              sBike.ulFMile = 0;
+ 387   1              sBike.ucSpeedMode = 0;
+ 388   1              sBike.bYXTERR = 1;
+ 389   1      }
+ 390          
+ 391          uint8_t GetBatStatus(uint16_t uiVol)
+ 392          {
+ 393   1              uint8_t i;
+ 394   1              const uint16_t *uiBatStatus;
+ 395   1      
+ 396   1              switch ( sConfig.uiSysVoltage ){
+ 397   2              case 48:uiBatStatus = uiBatStatus48;break;
+ 398   2              case 60:uiBatStatus = uiBatStatus60;break;
+ 399   2              case 72:uiBatStatus = uiBatStatus72;break;
+ 400   2              default:uiBatStatus = uiBatStatus60;break;
+ 401   2              }
+ 402   1      
+ 403   1              for(i=0;i<ContainOf(uiBatStatus60);i++)
+ 404   1                      if ( uiVol < uiBatStatus[i] ) break;
+ 405   1              return i;
+ 406   1      }
+ 407          
+ 408          #if 0
               #ifdef LCD8794GCT
               
               const uint16_t BatEnergy48[8] = {420,490};
@@ -359,6 +446,8 @@ line level    source
                       default:BatEnergy = BatEnergy60;break;
                       }
               
+C51 COMPILER V9.50a   BIKE                                                                 12/04/2017 00:08:34 PAGE 8   
+
                       if ( sBike.uiVoltage <= BatEnergy[0] ) uiEnergy = 0;
                       else if ( sBike.uiVoltage >= BatEnergy[1] ) uiEnergy = 100;
                       else {
@@ -368,297 +457,306 @@ line level    source
               }
               #endif
               #endif
- 349          
- 350          
- 351          
- 352          void LRFlashTask(void)
- 353          {
- 354   1              static uint8_t ucLeftOn=0       ,ucLeftOff=0;
- 355   1              static uint8_t ucRightOn=0      ,ucRightOff=0;
- 356   1              static uint8_t ucLeftCount=0,ucRightCount=0;
- 357   1      
- 358   1              if ( READ_TURN_LEFT() ){        //ON
- 359   2              ucLeftOff = 0;
- 360   2              if ( ucLeftOn ++ > 10 ){                //200ms 滤波
- 361   3                  if ( ucLeftOn > 100 ){
- 362   4                          ucLeftOn = 101;
-C51 COMPILER V9.50a   BIKE                                                                 11/25/2017 23:50:34 PAGE 7   
+ 436          
+ 437          
+ 438          
+ 439          void LRFlashTask(void)
+ 440          {
+ 441   1              static uint8_t ucLeftOn=0       ,ucLeftOff=0;   //开启计时器
+ 442   1              static uint8_t ucRightOn=0      ,ucRightOff=0;  //关闭计时器
+ 443   1              static uint8_t ucLeftCount=0,ucRightCount=0;//开启时间计时器
+ 444   1      
+ 445   1              if ( READ_TURN_LEFT() ){        //ON
+ 446   2              ucLeftOff = 0;
+ 447   2              if ( ucLeftOn ++ > 10 ){                //200ms 滤波
+ 448   3                  if ( ucLeftOn > 100 ){
+ 449   4                          ucLeftOn = 101;
+ 450   4                      sBike.bLFlashType = 0;  //长时间开启，为开关信号
+ 451   4                  }
+ 452   3                      if ( ucLeftCount < 0xFF-50 ){
+ 453   4                          ucLeftCount++;
+ 454   4                  }
+ 455   3                              sBike.bLeftFlash= 1;            //闪光信号
+ 456   3                              sBike.bTurnLeft = 1;            //转向信号
+ 457   3              }
+ 458   2              } else {                                        //OFF
+ 459   2              ucLeftOn = 0;
+ 460   2              if ( ucLeftOff ++ == 10 ){
+ 461   3                      ucLeftCount += 25;                      //在开启时间上加500ms
+ 462   3                              sBike.bLeftFlash = 0;
+ 463   3              } else if ( ucLeftOff > 10 ){
+ 464   3                      ucLeftOff = 11;
+ 465   3                  sBike.bLFlashType = 1;              //闪光器信号
+ 466   3                  if ( ucLeftCount == 0 ){
+ 467   4                                      sBike.bTurnLeft = 0;
+ 468   4                  } else
+ 469   3                                      ucLeftCount --;
+ 470   3                      }
+ 471   2              }
+ 472   1              
+ 473   1              if ( READ_TURN_RIGHT() ){       //ON
+ 474   2              ucRightOff = 0;
+ 475   2              if ( ucRightOn ++ > 10 ){
+ 476   3                  if ( ucRightOn > 100 ){
+ 477   4                          ucRightOn = 101;
+ 478   4                      sBike.bRFlashType = 0;
+ 479   4                  }
+ 480   3                      if ( ucRightCount < 0xFF-50 ){
+ 481   4                                      ucRightCount++;
+ 482   4                  }
+ 483   3                              sBike.bRightFlash= 1;
+ 484   3                              sBike.bTurnRight = 1;
+ 485   3              }
+ 486   2              } else {                                        //OFF
+ 487   2              ucRightOn = 0;
+ 488   2              if ( ucRightOff ++ == 10 ){
+C51 COMPILER V9.50a   BIKE                                                                 12/04/2017 00:08:34 PAGE 9   
 
- 363   4                      sBike.bLFlashType = 0;
- 364   4                  }
- 365   3                      if ( ucLeftCount < 0xFF-50 ){
- 366   4                          ucLeftCount++;
- 367   4                  }
- 368   3                              sBike.bLeftFlash= 1;
- 369   3                              sBike.bTurnLeft = 1;
- 370   3              }
- 371   2              } else {                                        //OFF
- 372   2              ucLeftOn = 0;
- 373   2              if ( ucLeftOff ++ == 10 ){
- 374   3                      ucLeftCount += 50;      //500ms
- 375   3                              sBike.bLeftFlash = 0;
- 376   3              } else if ( ucLeftOff > 10 ){
- 377   3                      ucLeftOff = 11;
- 378   3                  sBike.bLFlashType = 1;
- 379   3                  if ( ucLeftCount == 0 ){
- 380   4                                      sBike.bTurnLeft = 0;
- 381   4                  } else
- 382   3                                      ucLeftCount --;
- 383   3                      }
- 384   2              }
- 385   1              
- 386   1              if ( READ_TURN_RIGHT() ){       //ON
- 387   2              ucRightOff = 0;
- 388   2              if ( ucRightOn ++ > 10 ){
- 389   3                  if ( ucRightOn > 100 ){
- 390   4                          ucRightOn = 101;
- 391   4                      sBike.bRFlashType = 0;
- 392   4                  }
- 393   3                      if ( ucRightCount < 0xFF-50 ){
- 394   4                                      ucRightCount++;
- 395   4                  }
- 396   3                              sBike.bRightFlash= 1;
- 397   3                              sBike.bTurnRight = 1;
- 398   3              }
- 399   2              } else {                                        //OFF
- 400   2              ucRightOn = 0;
- 401   2              if ( ucRightOff ++ == 10 ){
- 402   3                      ucRightCount += 50;     //500ms
- 403   3                              sBike.bRightFlash = 0;
- 404   3              } else if ( ucRightOff > 10 ){
- 405   3                      ucRightOff = 11;
- 406   3                  sBike.bRFlashType = 1;
- 407   3                  if ( ucRightCount == 0 ){
- 408   4                                      sBike.bTurnRight = 0;
- 409   4                  } else
- 410   3                                      ucRightCount --;
- 411   3                      }
- 412   2              }
- 413   1      }
- 414          
- 415          uint8_t MileResetTask(void)
- 416          {
- 417   1              static uint16_t uiPreTick=0;
- 418   1              static uint8_t TaskFlag = TASK_INIT;
- 419   1              static uint8_t ucCount = 0;
- 420   1              uint8_t ret=0;
- 421   1              
- 422   1          if ( TaskFlag == TASK_EXIT )
- 423   1              return 0;
- 424   1          
-C51 COMPILER V9.50a   BIKE                                                                 11/25/2017 23:50:34 PAGE 8   
-
- 425   1              if ( Get_ElapseTick(uiPreTick) > 10000 | sBike.bBraked | sBike.ucSpeed )
- 426   1                      TaskFlag = TASK_EXIT;
- 427   1      
- 428   1              switch( TaskFlag ){
- 429   2              case TASK_INIT:
- 430   2                      if ( Get_SysTick() < 3000 && sBike.bTurnRight == 1 ){
- 431   3                              TaskFlag = TASK_STEP1;
- 432   3                              ucCount = 0;
- 433   3                      }
- 434   2                      break;
- 435   2              case TASK_STEP1:
- 436   2                      if ( sBike.bLastNear == 0 && sBike.bNearLight ){
- 437   3                              uiPreTick = Get_SysTick();
- 438   3                              if ( ++ucCount >= 8 ){
- 439   4                                      TaskFlag = TASK_STEP2;
- 440   4                                      ucCount = 0;
- 441   4                                      sBike.bMileFlash = 1;
- 442   4                                      sBike.ulMile = sConfig.ulMile;
- 443   4                              } 
- 444   3                      }
- 445   2                      sBike.bLastNear = sBike.bNearLight;
- 446   2                      ret = 1;
- 447   2                      break;
- 448   2              case TASK_STEP2:
- 449   2                      if ( sBike.bTurnRight == 0 && sBike.bTurnLeft == 1 ) {
- 450   3                              ucCount = 0;
- 451   3                              TaskFlag = TASK_EXIT;
- 452   3                              sBike.bMileFlash = 0;
- 453   3                              sBike.ulFMile   = 0;
- 454   3                              sBike.ulMile    = 0;
- 455   3                              sConfig.ulMile  = 0;
- 456   3                              WriteConfig();
- 457   3                      } else if ( sBike.bTurnRight == 0 && sBike.bTurnLeft == 0 ) {
- 458   3                              if ( sBike.bLastNear == 0 && sBike.bNearLight){
- 459   4                                      uiPreTick = Get_SysTick();
- 460   4                                      if ( ++ucCount >= 4 ){
- 461   5                                              TaskFlag = TASK_STEP3;
- 462   5                                              if ( sConfig.uiSingleTrip ){
- 463   6                                                      sConfig.uiSingleTrip = 0;
- 464   6                                                      sBike.ulMile = 99999UL;
- 465   6                                              } else {
- 466   6                                                      sConfig.uiSingleTrip = 1;
- 467   6                                                      sBike.ulMile = 0;
- 468   6                                              }
- 469   5                                              WriteConfig();
- 470   5                                      }
- 471   4                              }
- 472   3                      }
- 473   2                      sBike.bLastNear = sBike.bNearLight;
- 474   2                      ret = 1;
- 475   2                      break;
- 476   2              case TASK_STEP3:
- 477   2                      if ( Get_ElapseTick(uiPreTick) > 3000 ) {
- 478   3                              TaskFlag = TASK_EXIT;
- 479   3                              if ( sConfig.uiSingleTrip )
- 480   3                                      sBike.ulMile = 0;
- 481   3                              else
- 482   3                                      sBike.ulMile = sConfig.ulMile;
- 483   3                              sBike.bMileFlash = 0;
- 484   3                      }
- 485   2                      ret = 1;
- 486   2                      break;
-C51 COMPILER V9.50a   BIKE                                                                 11/25/2017 23:50:34 PAGE 9   
-
- 487   2              case TASK_EXIT:
- 488   2              default:
- 489   2                      sBike.bMileFlash = 0;
- 490   2                      ret = 0;
- 491   2                      break;
- 492   2              }
- 493   1              
- 494   1              return ret;
- 495   1      }
- 496          
- 497          void MileTask(void)
- 498          {
- 499   1              static uint16_t uiTime = 0;
- 500   1              uint8_t uiSpeed;
- 501   1              
- 502   1              if ( MileResetTask() )
- 503   1                      return ;
- 504   1              
- 505   1              uiSpeed = sBike.ucSpeed;
- 506   1              if ( uiSpeed > DISPLAY_MAX_SPEED )
- 507   1                      uiSpeed = DISPLAY_MAX_SPEED;
+ 489   3                      ucRightCount += 25;     //500ms
+ 490   3                              sBike.bRightFlash = 0;
+ 491   3              } else if ( ucRightOff > 10 ){
+ 492   3                      ucRightOff = 11;
+ 493   3                  sBike.bRFlashType = 1;
+ 494   3                  if ( ucRightCount == 0 ){
+ 495   4                                      sBike.bTurnRight = 0;
+ 496   4                  } else
+ 497   3                                      ucRightCount --;
+ 498   3                      }
+ 499   2              }
+ 500   1      }
+ 501          
+ 502          uint8_t MileSetupTask(void)
+ 503          {
+ 504   1              static uint16_t uiPreTick=0;
+ 505   1              static uint8_t TaskFlag = TASK_INIT;
+ 506   1              static uint8_t ucCount = 0;
+ 507   1              uint8_t ret = 0;
  508   1      
- 509   1      //#ifdef SINGLE_TRIP
- 510   1              uiTime ++;
- 511   1              if ( uiTime < 20 ) {    //2s
- 512   2                      if ( sConfig.uiSingleTrip == 0 )
- 513   2                              uiTime = 51;
- 514   2                      sBike.ulMile = sConfig.ulMile;
- 515   2              } else if ( uiTime < 50 ) {     //5s
- 516   2                      if ( uiSpeed ) {
- 517   3                              uiTime = 50;
- 518   3                              sBike.ulMile = 0;
- 519   3                      }
- 520   2              } else if ( uiTime == 50 ){
- 521   2                      sBike.ulMile = 0;
- 522   2              } else 
- 523   1      //#endif        
- 524   1              {
- 525   2                      uiTime = 51;
- 526   2                      
- 527   2                      sBike.ulFMile = sBike.ulFMile + uiSpeed;
- 528   2                      if(sBike.ulFMile >= 36000)
- 529   2                      {
- 530   3                              sBike.ulFMile = 0;
- 531   3                              sBike.ulMile++;
- 532   3                              if ( sBike.ulMile > 99999 )             sBike.ulMile = 0;
- 533   3                              sConfig.ulMile ++;
- 534   3                              if ( sConfig.ulMile > 99999 )   sConfig.ulMile = 0;
- 535   3                              WriteConfig();
- 536   3                      }  
- 537   2              }
- 538   1      }
- 539          
- 540          uint8_t SpeedCaltTask(void)
- 541          {
- 542   1              static uint16_t uiPreTick=0;
- 543   1              static uint8_t TaskFlag = TASK_INIT;
- 544   1              static uint8_t ucLastSpeed = 0;
- 545   1              static uint8_t ucCount = 0;
- 546   1          static signed char cSpeedInc=0;
- 547   1              static uint8_t yxterr=0;
- 548   1              
-C51 COMPILER V9.50a   BIKE                                                                 11/25/2017 23:50:34 PAGE 10  
+ 509   1              switch( TaskFlag ){
+ 510   2              case TASK_INIT:
+ 511   2                      if ( Get_SysTick() < 3000 && sBike.bTurnRight == 1 ){
+ 512   3                              TaskFlag = TASK_STEP1;
+ 513   3                              ucCount = 0;
+ 514   3                      }
+ 515   2                      break;
+ 516   2              case TASK_STEP1:
+ 517   2                      if ( sBike.bLastNear == 0 && sBike.bNearLight ){
+ 518   3                              uiPreTick = Get_SysTick();
+ 519   3                              if ( ++ucCount >= 8 ){
+ 520   4                                      TaskFlag = TASK_STEP2;
+ 521   4                                      ucCount = 0;
+ 522   4                                      sBike.bMileFlash = 1;
+ 523   4                                      sBike.ulMile = sConfig.ulMile;
+ 524   4                              } 
+ 525   3                      }
+ 526   2                      sBike.bLastNear = sBike.bNearLight;
+ 527   2                      ret = 1;
+ 528   2                      break;
+ 529   2              case TASK_STEP2:
+ 530   2                      if ( sBike.bTurnRight == 0 && sBike.bTurnLeft == 1 ) {
+ 531   3                              ucCount = 0;
+ 532   3                              TaskFlag = TASK_EXIT;
+ 533   3                              sBike.bMileFlash = 0;
+ 534   3                              sBike.ulFMile   = 0;
+ 535   3                              sBike.ulMile    = 0;
+ 536   3                              sConfig.ulMile  = 0;
+ 537   3                              WriteConfig();
+ 538   3                      } else if ( sBike.bTurnRight == 0 && sBike.bTurnLeft == 0 ) {
+ 539   3                              if ( sBike.bLastNear == 0 && sBike.bNearLight){
+ 540   4                                      uiPreTick = Get_SysTick();
+ 541   4                                      if ( ++ucCount >= 4 ){
+ 542   5                                              TaskFlag = TASK_STEP3;
+ 543   5                                              if ( sConfig.uiSingleTrip ){
+ 544   6                                                      sConfig.uiSingleTrip = 0;
+ 545   6                                                      sBike.ulMile = 22222UL;
+ 546   6                                              } else {
+ 547   6                                                      sConfig.uiSingleTrip = 1;
+ 548   6                                                      sBike.ulMile = 11111UL;
+ 549   6                                              }
+ 550   5                                              WriteConfig();
+C51 COMPILER V9.50a   BIKE                                                                 12/04/2017 00:08:34 PAGE 10  
 
- 549   1          if ( TaskFlag == TASK_EXIT )
- 550   1              return 0;
- 551   1          
- 552   1              if ( Get_ElapseTick(uiPreTick) > 10000 || sBike.bBraked )
- 553   1                      TaskFlag = TASK_EXIT;
- 554   1      
- 555   1              switch( TaskFlag ){
- 556   2              case TASK_INIT:
- 557   2                      if ( Get_SysTick() < 3000 && sBike.bTurnLeft == 1 ){
- 558   3                              TaskFlag = TASK_STEP1;
- 559   3                              ucCount = 0;
- 560   3                      }
- 561   2                      break;
- 562   2              case TASK_STEP1:
- 563   2                      if ( sBike.bLastNear == 0 && sBike.bNearLight){
- 564   3                              if ( ++ucCount >= 8 ){
- 565   4                                      TaskFlag = TASK_STEP2;
- 566   4                                      ucCount         = 0;
- 567   4                                      cSpeedInc       = 0;
- 568   4                                      sBike.bSpeedFlash = 1;
- 569   4                                      yxterr = sBike.bYXTERR;
- 570   4                                      if ( yxterr )
- 571   4                                              sConfig.uiSpeedScale     = 1000;
- 572   4                                      else
- 573   4                                              sConfig.uiYXT_SpeedScale = 1000;
- 574   4                              }
- 575   3                              uiPreTick = Get_SysTick();
- 576   3                      }
- 577   2                      sBike.bLastNear  = sBike.bNearLight;
- 578   2                      break;
- 579   2              case TASK_STEP2:
- 580   2              //if ( sConfig.uiSysVoltage == 48 )
- 581   2                      //      sBike.ucSpeed = 42;
- 582   2              //else if ( sConfig.uiSysVoltage == 60 )
- 583   2                      //      sBike.ucSpeed = 44;
- 584   2              
- 585   2                      if ( sBike.bLastNear == 0 && sBike.bNearLight == 1 ){
- 586   3                              uiPreTick = Get_SysTick();
- 587   3                  if ( sBike.bTurnLeft == 1 ) {
- 588   4                                      ucCount = 0;
- 589   4                                      if ( sBike.ucSpeed + cSpeedInc > 1 )
- 590   4                                              cSpeedInc --;
- 591   4                      } else if ( sBike.bTurnRight == 1 ) {
- 592   4                                      ucCount = 0;
- 593   4                      if ( sBike.ucSpeed + cSpeedInc < 99 )
- 594   4                                              cSpeedInc ++;
- 595   4                  } else {
- 596   4                                      if ( ++ucCount >= 5 ){
- 597   5                                              TaskFlag = TASK_EXIT;
- 598   5                                              sBike.bSpeedFlash = 0;
- 599   5                                              if ( sBike.ucSpeed ) {
- 600   6                                                      if ( yxterr )
- 601   6                                                              sConfig.uiSpeedScale     = (uint32_t)sBike.ucSpeed*1000UL/(sBike.ucSpeed+cSpeedInc);
- 602   6                                                      else
- 603   6                                                              sConfig.uiYXT_SpeedScale = (uint32_t)sBike.ucSpeed*1000UL/(sBike.ucSpeed+cSpeedInc);
- 604   6                                                      WriteConfig();
- 605   6                                              }
- 606   5                                      }
- 607   4                              }
- 608   3                      }
- 609   2                      sBike.bLastNear = sBike.bNearLight;
- 610   2          
-C51 COMPILER V9.50a   BIKE                                                                 11/25/2017 23:50:34 PAGE 11  
+ 551   5                                      }
+ 552   4                              }
+ 553   3                      }
+ 554   2                      sBike.bLastNear = sBike.bNearLight;
+ 555   2                      ret = 1;
+ 556   2                      break;
+ 557   2              case TASK_STEP3:
+ 558   2                      if ( Get_ElapseTick(uiPreTick) > 3000 ) {
+ 559   3                              TaskFlag = TASK_EXIT;
+ 560   3                              if ( sConfig.uiSingleTrip )
+ 561   3                                      sBike.ulMile = 0;
+ 562   3                              else
+ 563   3                                      sBike.ulMile = sConfig.ulMile;
+ 564   3                      }
+ 565   2                      ret = 1;
+ 566   2                      break;
+ 567   2              case TASK_EXIT:
+ 568   2              default:
+ 569   2                              sBike.bMileFlash = 0;
+ 570   2                      break;
+ 571   2              }
+ 572   1      
+ 573   1              if ( Get_ElapseTick(uiPreTick) > 10000/* || sBike.bBraked || sBike.ucSpeed*/ )
+ 574   1                      TaskFlag = TASK_EXIT;
+ 575   1              
+ 576   1              return ret;
+ 577   1      }
+ 578          
+ 579          void MileTask(void)
+ 580          {
+ 581   1      #define MT_INIT                                 0
+ 582   1      #define MT_SHOW_TOTAL_MILE_2S   1
+ 583   1      #define MT_WAIT_SPEED                   2
+ 584   1      #define MT_SHOW_MILE                    3
+ 585   1      
+ 586   1              static uint16_t uiTime = 0;
+ 587   1              static uint8_t task=MT_INIT;
+ 588   1              
+ 589   1              if ( MileSetupTask() ){
+ 590   2                      task    = MT_INIT;
+ 591   2                      return ;
+ 592   2              }
+ 593   1      
+ 594   1              uiTime ++;
+ 595   1              switch( task ){
+ 596   2              case MT_INIT:
+ 597   2                      if ( sConfig.uiSingleTrip == 0 )
+ 598   2                              task = MT_SHOW_MILE;
+ 599   2                      else
+ 600   2                              task = MT_SHOW_TOTAL_MILE_2S;
+ 601   2                      sBike.ulMile  = sConfig.ulMile;
+ 602   2                      sBike.ulFMile = 0;
+ 603   2                      uiTime  = 0;
+ 604   2                      break;
+ 605   2              case MT_SHOW_TOTAL_MILE_2S:
+ 606   2                      if ( uiTime > 20 )      //2s
+ 607   2                              task = MT_WAIT_SPEED;
+ 608   2                      break;
+ 609   2              case MT_WAIT_SPEED:
+ 610   2                      if ( uiTime > 50 || sBike.ucSpeed > 0 ){
+ 611   3                              task = MT_SHOW_MILE;
+ 612   3                              sBike.ulMile = 0;
+C51 COMPILER V9.50a   BIKE                                                                 12/04/2017 00:08:34 PAGE 11  
 
- 611   2                      if ( ucLastSpeed && sBike.ucSpeed == 0 ){
- 612   3                              TaskFlag = TASK_EXIT;
  613   3                      }
- 614   2              
- 615   2                      if ( sBike.ucSpeed )
- 616   2                              uiPreTick = Get_SysTick();
- 617   2      
- 618   2              sBike.ucSpeed += cSpeedInc;
- 619   2                      ucLastSpeed = sBike.ucSpeed;
- 620   2                      break;
- 621   2              case TASK_EXIT:
- 622   2              default:
- 623   2                      sBike.bSpeedFlash = 0;
- 624   2                      break;
- 625   2              }
- 626   1              return 0;
- 627   1      }
- 628          
- 629          #if ( TIME_ENABLE == 1 )
+ 614   2                      break;  
+ 615   2              case MT_SHOW_MILE:
+ 616   2                      if ( sBike.ucSpeed > DISPLAY_MAX_SPEED )
+ 617   2                              sBike.ulFMile += DISPLAY_MAX_SPEED;
+ 618   2                      else
+ 619   2                              sBike.ulFMile += sBike.ucSpeed;
+ 620   2                      
+ 621   2                      if(sBike.ulFMile >= 36000)
+ 622   2                      {
+ 623   3                              sBike.ulFMile = 0;
+ 624   3                              sBike.ulMile++;
+ 625   3                              if ( sBike.ulMile > 99999 )             sBike.ulMile = 0;
+ 626   3                              sConfig.ulMile ++;
+ 627   3                              if ( sConfig.ulMile > 99999 )   sConfig.ulMile = 0;
+ 628   3                              WriteConfig();
+ 629   3                      }  
+ 630   2                      break;
+ 631   2              default:
+ 632   2                      task = MT_INIT;
+ 633   2                      break;
+ 634   2              }
+ 635   1      #undef MT_INIT
+ 636   1      #undef MT_SHOW_TOTAL_MILE_2S
+ 637   1      #undef MT_WAIT_SPEED
+ 638   1      #undef MT_SHOW_MILE     
+ 639   1      }
+ 640          
+ 641          uint8_t SpeedCaltTask(void)
+ 642          {
+ 643   1              static uint16_t uiPreTick=0;
+ 644   1              static uint8_t TaskFlag = TASK_INIT;
+ 645   1              static uint8_t ucLastSpeed = 0;
+ 646   1              static uint8_t ucCount = 0;
+ 647   1          static signed char scSpeedInc=0;
+ 648   1              static uint8_t yxterr=0;
+ 649   1              signed char scSpeed;
+ 650   1              
+ 651   1              switch( TaskFlag ){
+ 652   2              case TASK_INIT:
+ 653   2                      if ( Get_SysTick() < 3000 && sBike.bTurnLeft == 1 ){
+ 654   3                              TaskFlag = TASK_STEP1;
+ 655   3                              ucCount = 0;
+ 656   3                      }
+ 657   2                      break;
+ 658   2              case TASK_STEP1:
+ 659   2                      if ( sBike.bLastNear == 0 && sBike.bNearLight){
+ 660   3                              if ( ++ucCount >= 8 ){
+ 661   4                                      TaskFlag = TASK_STEP2;
+ 662   4                                      ucCount         = 0;
+ 663   4                                      scSpeedInc      = 0;
+ 664   4                                      sBike.bSpeedFlash = 1;
+ 665   4                                      yxterr = sBike.bYXTERR;
+ 666   4                                      if ( yxterr )
+ 667   4                                              sConfig.uiSpeedScale     = 1000;
+ 668   4                                      else
+ 669   4                                              sConfig.uiYXT_SpeedScale = 1000;
+ 670   4                              }
+ 671   3                              uiPreTick = Get_SysTick();
+ 672   3                      }
+ 673   2                      sBike.bLastNear  = sBike.bNearLight;
+ 674   2                      break;
+C51 COMPILER V9.50a   BIKE                                                                 12/04/2017 00:08:34 PAGE 12  
+
+ 675   2              case TASK_STEP2:
+ 676   2                      if ( sBike.bLastNear == 0 && sBike.bNearLight == 1 ){
+ 677   3                              uiPreTick = Get_SysTick();
+ 678   3                  if ( sBike.bTurnLeft == 1 ) {
+ 679   4                                      ucCount = 0;
+ 680   4                                      if ( sBike.ucSpeed + scSpeedInc > 1 )
+ 681   4                                              scSpeedInc --;
+ 682   4                      } else if ( sBike.bTurnRight == 1 ) {
+ 683   4                                      ucCount = 0;
+ 684   4                      if ( sBike.ucSpeed + scSpeedInc < 99 )
+ 685   4                                              scSpeedInc ++;
+ 686   4                  } else {
+ 687   4                                      if ( ++ucCount >= 4 ){
+ 688   5                                              TaskFlag = TASK_EXIT;
+ 689   5                                              sBike.bSpeedFlash = 0;
+ 690   5                                              if ( sBike.ucSpeed ) {
+ 691   6                                                      if ( yxterr )
+ 692   6                                                              sConfig.uiSpeedScale     = (uint32_t)sBike.ucSpeed*1000UL/(sBike.ucSpeed+scSpeedInc);
+ 693   6                                                      else
+ 694   6                                                              sConfig.uiYXT_SpeedScale = (uint32_t)sBike.ucSpeed*1000UL/(sBike.ucSpeed+scSpeedInc);
+ 695   6                                                      WriteConfig();
+ 696   6                                              }
+ 697   5                                      }
+ 698   4                              }
+ 699   3                      }
+ 700   2                      sBike.bLastNear = sBike.bNearLight;
+ 701   2              
+ 702   2                      if ( sBike.ucSpeed )
+ 703   2                              uiPreTick = Get_SysTick();
+ 704   2      
+ 705   2                      scSpeed = sBike.ucSpeed + scSpeedInc;
+ 706   2                      if ( scSpeed < 0 )
+ 707   2                              sBike.ucSpeed = 0;
+ 708   2                      else
+ 709   2                              sBike.ucSpeed = scSpeed;
+ 710   2                              
+ 711   2                      if ( ucLastSpeed && sBike.ucSpeed == 0 )
+ 712   2                              TaskFlag = TASK_EXIT;
+ 713   2                              
+ 714   2                      ucLastSpeed = sBike.ucSpeed;
+ 715   2                      break;
+ 716   2              case TASK_EXIT:
+ 717   2              default:
+ 718   2                      sBike.bSpeedFlash = 0;
+ 719   2                      break;
+ 720   2              }
+ 721   1              if ( Get_ElapseTick(uiPreTick) > 10000 || sBike.bBraked )
+ 722   1                      TaskFlag = TASK_EXIT;
+ 723   1      
+ 724   1              return 0;
+ 725   1      }
+ 726          
+ 727          #if ( TIME_ENABLE == 1 )
               void TimeTask(void)
               {
                       static uint8_t ucTask=0,ucLeftOn= 0,NL_on = 0;
@@ -668,6 +766,8 @@ line level    source
                               return ;
                       
                       if (sBike.ucSpeed > 1)
+C51 COMPILER V9.50a   BIKE                                                                 12/04/2017 00:08:34 PAGE 13  
+
                               ucTask = 0xff;
                       
                       switch ( ucTask ){
@@ -702,8 +802,6 @@ line level    source
                               if ( sBike.bTurnLeft == 1 ){
                                       if ( Get_ElapseTick(uiPreTick) > 1000  ) ucTask = 0xFF; else { uiPreTick = Get_SysTick(); ucTask++; }
                               } else {
-C51 COMPILER V9.50a   BIKE                                                                 11/25/2017 23:50:34 PAGE 12  
-
                                       if ( Get_ElapseTick(uiPreTick) > 1000  || sBike.bNearLight ) ucTask = 0xFF;
                               }
                               break;
@@ -732,6 +830,8 @@ line level    source
                                       if ( Get_ElapseTick(uiPreTick) > 1000  ) ucTask = 0xFF; else { uiPreTick = Get_SysTick(); ucTask++; }
                               } else {
                                       if ( Get_ElapseTick(uiPreTick) > 1000  || sBike.bNearLight ) ucTask = 0xFF;
+C51 COMPILER V9.50a   BIKE                                                                 12/04/2017 00:08:34 PAGE 14  
+
                               }
                       case 9:
                               if ( sBike.bTurnLeft == 0 ){
@@ -766,8 +866,6 @@ line level    source
                               }
                               break;
                       default:
-C51 COMPILER V9.50a   BIKE                                                                 11/25/2017 23:50:34 PAGE 13  
-
                               sBike.ucTimePos = 0;
                               sBike.bTimeSet = 0; 
                               ucTask = 0;
@@ -796,6 +894,8 @@ line level    source
                                               case 1:
                                                       if ( sBike.ucHour % 10 < 9 )
                                                               sBike.ucHour ++;
+C51 COMPILER V9.50a   BIKE                                                                 12/04/2017 00:08:34 PAGE 15  
+
                                                       else 
                                                               sBike.ucHour -= 9;
                                                       break;
@@ -828,257 +928,135 @@ line level    source
                        sBike.ucMinute         = RtcTime.RTC_Minutes;
               }
               #endif 
- 795          /*----------------------------------------------------------*/
- 796          
-C51 COMPILER V9.50a   BIKE                                                                 11/25/2017 23:50:34 PAGE 14  
+ 893          /*----------------------------------------------------------*/
+ 894          
+ 895          
+ 896          void Light_Task(void)
+ 897          {
+ 898   1              uint8_t ucSpeedMode;
+ 899   1      
+ 900   1              if( GPIO_Read(NearLight_PORT,   NearLight_PIN) ) sBike.bNearLight = 1; else sBike.bNearLight = 0;
+ 901   1              //if( GPIO_Read(TurnRight_PORT, TurnRight_PIN) ) sBike.bTurnRight = 1; else sBike.bTurnRight = 0;
+ 902   1              //if( GPIO_Read(TurnLeft_PORT,  TurnLeft_PIN ) ) sBike.bTurnLeft  = 1; else sBike.bTurnLeft  = 0;
+ 903   1              //if( GPIO_Read(Braked_PORT,    Braked_PIN       ) ) sBike.bBraked    = 1; else sBike.bBraked    = 0;
+ 904   1              
+ 905   1              if ( sBike.bYXTERR ){
+ 906   2                      ucSpeedMode = 0;
+ 907   2                      if( GPIO_Read(SPMODE1_PORT,SPMODE1_PIN) ) ucSpeedMode |= 1<<0;
+ 908   2                      if( GPIO_Read(SPMODE2_PORT,SPMODE2_PIN) ) ucSpeedMode |= 1<<1;
+ 909   2                      if( GPIO_Read(SPMODE3_PORT,SPMODE3_PIN) ) ucSpeedMode |= 1<<2;
+ 910   2              #ifdef SPMODE4_PORT
+ 911   2                      if( GPIO_Read(SPMODE4_PORT,SPMODE4_PIN) ) ucSpeedMode |= 1<<3;
+ 912   2              #endif
+ 913   2                      switch(ucSpeedMode){
+ 914   3                              case 0x01:      sBike.ucSpeedMode = 1; break;
+ 915   3                              case 0x02:      sBike.ucSpeedMode = 2; break;
+ 916   3                              case 0x04:      sBike.ucSpeedMode = 3; break;
+ 917   3                              case 0x08:      sBike.ucSpeedMode = 4; break;
+ 918   3                              default:        sBike.ucSpeedMode = 0; break;
+ 919   3                      }
+ 920   2                      sBike.ucPHA_Speed= GetSpeed();
+ 921   2                      sBike.ucSpeed    = (uint32_t)sBike.ucPHA_Speed*1000UL/sConfig.uiSpeedScale;
+ 922   2              }
+C51 COMPILER V9.50a   BIKE                                                                 12/04/2017 00:08:34 PAGE 16  
 
- 797          void Light_Task(void)
- 798          {
- 799   1              uint8_t ucSpeedMode;
- 800   1      
- 801   1              if( GPIO_Read(NearLight_PORT,   NearLight_PIN) ) sBike.bNearLight = 1; else sBike.bNearLight = 0;
- 802   1              //if( GPIO_Read(TurnRight_PORT, TurnRight_PIN) ) sBike.bTurnRight = 1; else sBike.bTurnRight = 0;
- 803   1              //if( GPIO_Read(TurnLeft_PORT,  TurnLeft_PIN ) ) sBike.bTurnLeft  = 1; else sBike.bTurnLeft  = 0;
- 804   1              //if( GPIO_Read(Braked_PORT,    Braked_PIN       ) ) sBike.bBraked    = 1; else sBike.bBraked    = 0;
- 805   1              
- 806   1              if ( sBike.bYXTERR ){
- 807   2                      ucSpeedMode = 0;
- 808   2                      if( GPIO_Read(SPMODE1_PORT,SPMODE1_PIN) ) ucSpeedMode |= 1<<0;
- 809   2                      if( GPIO_Read(SPMODE2_PORT,SPMODE2_PIN) ) ucSpeedMode |= 1<<1;
- 810   2                      if( GPIO_Read(SPMODE3_PORT,SPMODE3_PIN) ) ucSpeedMode |= 1<<2;
- 811   2              #ifdef SPMODE4_PORT
-                              if( GPIO_Read(SPMODE4_PORT,SPMODE4_PIN) ) ucSpeedMode |= 1<<3;
-                      #endif
- 814   2                      switch(ucSpeedMode){
- 815   3                              case 0x01:      sBike.ucSpeedMode = 1; break;
- 816   3                              case 0x02:      sBike.ucSpeedMode = 2; break;
- 817   3                              case 0x04:      sBike.ucSpeedMode = 3; break;
- 818   3                              case 0x08:      sBike.ucSpeedMode = 4; break;
- 819   3                              default:        sBike.ucSpeedMode = 0; break;
- 820   3                      }
- 821   2                      sBike.ucPHA_Speed= GetSpeed();
- 822   2                      sBike.ucSpeed    = (uint32_t)sBike.ucPHA_Speed*1000UL/sConfig.uiSpeedScale;
- 823   2              }
- 824   1      }
- 825          
- 826          void GetSysVoltage(void)
- 827          {       
- 828   1      #if defined BENLING_OUSHANG
-                      uint16_t uiVol;
-                      for(i=0;i<0xFF;i++){
-                              if ( GetVolStabed(&uiVol) && (uiVol > 120) ) break;
-                              FEED_DOG();  
-                      }
-                      if ( 720 <= uiVol && uiVol <= 870 ){
-                              if ( sConfig.uiSysVoltage != 72 ){
-                                      sConfig.uiSysVoltage = 72
-                                      WriteConfig();
-                              }
-                      } else if ( 480 <= uiVol && uiVol <= 600 ){
-                              if ( sConfig.uiSysVoltage != 60 ){
-                                      sConfig.uiSysVoltage = 60;
-                                      WriteConfig();
-                              }
-                      }
-              #elif defined BENLING_BL48_60
-                      uint16_t uiVol;
-                      for(i=0;i<0xFF;i++){
-                              if ( GetVolStabed(&uiVol) && (uiVol > 120) ) break;
-                              FEED_DOG();  
-                      }
-                      if ( 610 <= uiVol && uiVol <= 720 ){
-                              if ( sConfig.uiSysVoltage != 60 ){
-                                      sConfig.uiSysVoltage = 60;
-                                      WriteConfig();
-                              }
-                      }       else if ( 360 <= uiVol && uiVol <= 500 ){
-                              if ( sConfig.uiSysVoltage != 48 ){
-                                      sConfig.uiSysVoltage = 48;
-C51 COMPILER V9.50a   BIKE                                                                 11/25/2017 23:50:34 PAGE 15  
-
-                                      WriteConfig();
-                              }
-                      }               
-              #elif defined BENLING_ZHONGSHA
-                      sConfig.uiSysVoltage = 72;
-              #elif (defined OUJUN) || (defined OUPAINONG_6072)
-                      //GPIO_Init(V72_PORT, V72_PIN, GPIO_MODE_IN_PU_NO_IT);
-                      GPIO_Init(V48_PORT, V48_PIN, GPIO_MODE_IN_PU_NO_IT);
-                      if ( GPIO_ReadInputPin(V48_PORT, V48_PIN) == RESET ){
-                              sConfig.uiSysVoltage = 72;
-                      } else {
-                              sConfig.uiSysVoltage = 60;
-                      }
-              #elif defined OUPAINONG_4860
-                      GPIO_Init(V48_PORT, V48_PIN, GPIO_MODE_IN_PU_NO_IT);
-                      if ( GPIO_ReadInputPin(V48_PORT, V48_PIN) == RESET ){
-                              sConfig.uiSysVoltage = 48;
-                      } else {
-                              sConfig.uiSysVoltage = 60;
-                      }
-              #elif defined LCD9040_4860
-                      GPIO_Init(V48_PORT, V48_PIN, GPIO_MODE_IN_PU_NO_IT);
-                      if ( GPIO_ReadInputPin(V48_PORT, V48_PIN) == RESET ){
-                              sConfig.uiSysVoltage = 60;
-                      } else {
-                              sConfig.uiSysVoltage = 48;
-                      }
+ 923   1      }
+ 924          
+ 925          #if 0
+              void main(void)
+              {
+                      uint8_t i;
+                      uint16_t uiTick;
+                      uint16_t uiCount=0;
+                      uint16_t uiVol=0;
+                      uint16_t tick_100ms=0;
+                      
+                      /* select Clock = 8 MHz */
+                      CLK_SYSCLKConfig(CLK_PRESCALER_HSIDIV2);
+                      CLK_HSICmd(ENABLE);
+                      IWDG_Config();
+              
+              #ifdef RESET_CONFIG
+                      ResetConfig();
+                      BL55072_Config(2);
+                      MenuUpdate(&sBike);
+                      while(1){ FEED_DOG(); }
               #else
- 887   1              GPIO_Init(V72_PORT, V72_PIN, GPIO_MODE_IN_PU_NO_IT);
- 888   1              GPIO_Init(V48_PORT, V48_PIN, GPIO_MODE_IN_PU_NO_IT);
- 889   1              if ( GPIO_ReadInputPin(V72_PORT, V72_PIN) == RESET ){
- 890   2                      sConfig.uiSysVoltage = 72;
- 891   2              } else {
- 892   2                      if ( GPIO_ReadInputPin(V48_PORT, V48_PIN) == RESET ){
- 893   3                              sConfig.uiSysVoltage = 48;
- 894   3                      } else {
- 895   3                              sConfig.uiSysVoltage = 60;
- 896   3                      }
- 897   2              }
- 898   1      #endif
- 899   1      }
- 900          
- 901          void Calibration(void)
- 902          {
- 903   1              uint8_t i;
- 904   1              uint16_t uiVol;
- 905   1              
- 906   1              CFG->GCR = CFG_GCR_SWD;
- 907   1              //短接低速、SWIM信号
- 908   1              GPIO_Init(GPIOD, GPIO_PIN_1, GPIO_MODE_OUT_OD_HIZ_SLOW);
- 909   1      
- 910   1              for(i=0;i<32;i++){
- 911   2                      GPIO_WriteLow (GPIOD,GPIO_PIN_1);
- 912   2                      Delay(1000);
- 913   2                      if( GPIO_Read(SPMODE1_PORT      , SPMODE1_PIN) ) break;
- 914   2                      GPIO_WriteHigh (GPIOD,GPIO_PIN_1);
- 915   2                      Delay(1000);
- 916   2                      if( GPIO_Read(SPMODE1_PORT      , SPMODE1_PIN)  == RESET ) break;
- 917   2              }
- 918   1              if ( i == 32 ){
- 919   2                      for(i=0;i<0xFF;i++){
- 920   3                              if ( GetVolStabed(&uiVol) && (uiVol > 120) ) break;
-C51 COMPILER V9.50a   BIKE                                                                 11/25/2017 23:50:34 PAGE 16  
-
- 921   3                              FEED_DOG();  
- 922   3                      }
- 923   2                      sBike.uiVoltage         = uiVol;
- 924   2                      //sBike.siTemperature= GetTemp();
- 925   2                      //sBike.ucSpeed         = GetSpeed();
- 926   2      
- 927   2                      sConfig.uiVolScale      = (uint32_t)sBike.uiVoltage*1000UL/VOL_CALIBRATIOIN;            //60.00V
- 928   2                      //sConfig.TempScale     = (long)sBike.siTemperature*1000UL/TEMP_CALIBRATIOIN;   //25.0C
- 929   2                      //sConfig.uiSpeedScale = (uint32_t)sBike.ucSpeed*1000UL/SPEED_CALIBRATIOIN;     //30km/h
- 930   2                      //sConfig.ulMile = 0;
- 931   2                      WriteConfig();
- 932   2              }
- 933   1              
- 934   1      #if ( TIME_ENABLE == 1 )
-                      for(i=0;i<32;i++){
-                              GPIO_WriteLow (GPIOD,GPIO_PIN_1);
-                              Delay(1000);
-                              if( GPIO_Read(SPMODE2_PORT      , SPMODE2_PIN) ) break;
-                              GPIO_WriteHigh (GPIOD,GPIO_PIN_1);
-                              Delay(1000);
-                              if( GPIO_Read(SPMODE2_PORT      , SPMODE2_PIN)  == RESET ) break;
-                      }
-                      if ( i == 32 ){
-                              sBike.bUart = 1;
+                      Init_timer();  
+                      HotReset();
+                      if ( sBike.bHotReset == 0 ) {
+                              BL55072_Config(1);
                       } else
-                              sBike.bUart = 0;
-              #endif
- 948   1      
- 949   1              CFG->GCR &= ~CFG_GCR_SWD;
- 950   1      }
- 951          
- 952          void main(void)
- 953          {
- 954   1              uint8_t i;
- 955   1              uint16_t uiTick;
- 956   1              uint16_t uiCount=0;
- 957   1              uint16_t uiVol=0;
- 958   1              uint16_t tick_100ms=0;
- 959   1              
- 960   1              /* select Clock = 8 MHz */
- 961   1              CLK_SYSCLKConfig(CLK_PRESCALER_HSIDIV2);
- 962   1              CLK_HSICmd(ENABLE);
- 963   1              IWDG_Config();
- 964   1      
- 965   1              Init_timer();  
- 966   1              HotReset();
- 967   1              if ( sBike.bHotReset == 0 ) {
- 968   2                      BL55072_Config(1);
- 969   2              } else
- 970   1                      BL55072_Config(0);
- 971   1      
- 972   1      //      for(i=0;i<32;i++){      GetVol();       /*FEED_DOG(); */ }
- 973   1      //      for(i=0;i<16;i++){      GetSpeed();     /*FEED_DOG(); */ }
- 974   1              for(i=0;i<4;i++) {      GetTemp();      FEED_DOG(); }
- 975   1      
- 976   1              InitConfig();
- 977   1              Calibration();
- 978   1              
- 979   1      #if ( TIME_ENABLE == 1 )        
+                              BL55072_Config(0);
+              
+              //      for(i=0;i<32;i++){      GetVol();       /*FEED_DOG(); */ }
+              //      for(i=0;i<16;i++){      GetSpeed();     /*FEED_DOG(); */ }
+                      for(i=0;i<4;i++) {      GetTemp();      FEED_DOG(); }
+              
+                      InitConfig();
+                      Calibration();
+                      
+              #if ( TIME_ENABLE == 1 )        
                       //sBike.bHasTimer = !PCF8563_Check();
                       sBike.bHasTimer = PCF8563_GetTime(PCF_Format_BIN,&RtcTime);
                       #ifndef DENGGUAN_XUNYING_T
-C51 COMPILER V9.50a   BIKE                                                                 11/25/2017 23:50:34 PAGE 17  
-
                       InitUART();
                       #endif
               #endif
- 986   1      
- 987   1      #if ( YXT_ENABLE == 1 )
- 988   1              YXT_Init();  
- 989   1      #endif
- 990   1        
- 991   1              enableInterrupts();
- 992   1              
- 993   1              if ( sBike.bHotReset == 0 ) {
- 994   2                      while ( Get_SysTick() < PON_ALLON_TIME ) FEED_DOG();
- 995   2                      BL55072_Config(0);
- 996   2              }
- 997   1              
- 998   1              GetVolStabed(&uiVol);
- 999   1              sBike.uiVoltage = (uint32_t)uiVol*1000UL/sConfig.uiVolScale;
-1000   1              sBike.siTemperature = GetTemp();
-1001   1              
-1002   1              while(1){
-1003   2                      uiTick = Get_SysTick();
-1004   2                      
-1005   2                      if ( (uiTick >= tick_100ms && (uiTick - tick_100ms) >= 100 ) || \
-1006   3                               (uiTick <  tick_100ms && (0xFFFF - tick_100ms + uiTick) >= 100 ) ) {
-1007   3                              tick_100ms = uiTick;
-1008   3                              uiCount ++;
-1009   3                              
-1010   3                              if ( (uiCount % 5) == 0 ) {
-1011   4                                      if ( GetVolStabed(&uiVol) ){
-1012   5                                              sBike.uiVoltage = (uint32_t)uiVol*1000UL/sConfig.uiVolScale;
-1013   5                                              sBike.ucBatStatus= GetBatStatus(sBike.uiVoltage);
-1014   5                                      }
-1015   4                              }
-1016   3                              if ( (uiCount % 10) == 0 ){
-1017   4                                      //      sBike.siTemperature= (long)GetTemp()    *1000UL/sConfig.TempScale;
-1018   4                                              sBike.siTemperature= GetTemp();
-1019   4                                      }
-1020   3                      #ifdef LCD8794GCT
+              
+              #if ( YXT_ENABLE == 1 )
+                      YXT_Init();  
+              #endif
+                
+                      enableInterrupts();
+                      
+                      if ( sBike.bHotReset == 0 ) {
+                              while ( Get_SysTick() < PON_ALLON_TIME ) FEED_DOG();
+                              BL55072_Config(0);
+                      }
+                      
+                      GetVolStabed(&uiVol);
+                      sBike.uiVoltage = (uint32_t)uiVol*1000UL/sConfig.uiVolScale;
+                      sBike.siTemperature = GetTemp();
+                      
+                      while(1){
+                              uiTick = Get_SysTick();
+                              
+C51 COMPILER V9.50a   BIKE                                                                 12/04/2017 00:08:34 PAGE 17  
+
+                              if ( (uiTick >= tick_100ms && (uiTick - tick_100ms) >= 100 ) || \
+                                       (uiTick <  tick_100ms && (0xFFFF - tick_100ms + uiTick) >= 100 ) ) {
+                                      tick_100ms = uiTick;
+                                      uiCount ++;
+                                      
+                                      if ( (uiCount % 5) == 0 ) {
+                                              if ( GetVolStabed(&uiVol) ){
+                                                      sBike.uiVoltage = (uint32_t)uiVol*1000UL/sConfig.uiVolScale;
+                                                      sBike.ucBatStatus= GetBatStatus(sBike.uiVoltage);
+                                              }
+                                      }
+                                      if ( (uiCount % 10) == 0 ){
+                                              //      sBike.siTemperature= (long)GetTemp()    *1000UL/sConfig.TempScale;
+                                                      sBike.siTemperature= GetTemp();
+                                              }
+                              #ifdef LCD8794GCT
                                       //sBike.ucEnergy        = GetBatEnergy(sBike.uiVoltage);
                               #endif
-1023   3                      
-1024   3                              Light_Task();
-1025   3                              MileTask(); 
-1026   3                              
-1027   3                      #if ( YXT_ENABLE == 1 )
-1028   3                              YXT_Task(&sBike,&sConfig);  
-1029   3                      #endif
-1030   3                              
-1031   3                              SpeedCaltTask();
-1032   3                      
-1033   3                      #if ( TIME_ENABLE == 1 )        
+                              
+                                      Light_Task();
+                                      MileTask(); 
+                                      
+                              #if ( YXT_ENABLE == 1 )
+                                      YXT_Task(&sBike,&sConfig);  
+                              #endif
+                                      
+                                      SpeedCaltTask();
+                              
+                              #if ( TIME_ENABLE == 1 )        
                                       TimeTask();   
                               #endif
-1036   3            
-1037   3                      #ifdef LCD_SEG_TEST
+                    
+                              #ifdef LCD_SEG_TEST
                                       if ( ++uiCount >= 100 ) uiCount = 0;
                                       sBike.uiVoltage         = uiCount/10 + uiCount/10*10UL + uiCount/10*100UL + uiCount/10*1000UL;
                                       sBike.siTemperature     = uiCount/10 + uiCount/10*10UL + uiCount/10*100UL;
@@ -1086,29 +1064,42 @@ line level    source
                                       sBike.ulMile            = uiCount/10 + uiCount/10*10UL + uiCount/10*100UL + uiCount/10*1000UL + uiCount/10*10000U
              -L;
                                       sBike.ucHour            = uiCount/10 + uiCount/10*10;
-C51 COMPILER V9.50a   BIKE                                                                 11/25/2017 23:50:34 PAGE 18  
-
                                       sBike.ucMinute          = uiCount/10 + uiCount/10*10;
                                       #ifdef LCD8794GCT
                                       //sBike.ucEnergy    = uiCount/10 + uiCount/10*10UL;
                                       #endif
                               #endif
-1049   3              
-1050   3                              MenuUpdate(&sBike);
-1051   3                              
-1052   3                              /* Reload IWDG counter */
-1053   3                              FEED_DOG();  
-1054   3                      } 
-1055   2      
-1056   2              #if ( TIME_ENABLE == 1 )
+                      
+                                      MenuUpdate(&sBike);
+                                      
+                                      /* Reload IWDG counter */
+                                      FEED_DOG();  
+                              } 
+              
+                      #if ( TIME_ENABLE == 1 )
                               #ifndef DENGGUAN_XUNYING_T
                               UartTask();
                               #endif
                       #endif
-1061   2              }
-1062   1      }
-1063          
-1064          
-1065          /************************ (C) COPYRIGHT  *****END OF FILE****/
+                      }
+              #endif  
+              }
+              #endif
+1045          
+C51 COMPILER V9.50a   BIKE                                                                 12/04/2017 00:08:34 PAGE 18  
 
-C51 COMPILATION COMPLETE.  1 WARNING(S),  1 ERROR(S)
+1046          /************************ (C) COPYRIGHT  *****END OF FILE****/
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   3697    ----
+   CONSTANT SIZE    =     48    ----
+   XDATA SIZE       =    403      97
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,10 +1,10 @@
-C51 COMPILER V9.50a   GPIO                                                                 11/25/2017 23:50:33 PAGE 1   
+C51 COMPILER V9.50a   GPIO                                                                 12/04/2017 00:08:34 PAGE 1   
 
 
 C51 COMPILER V9.50a, COMPILATION OF MODULE GPIO
 OBJECT MODULE PLACED IN .\Output\GPIO.obj
-COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE Code\GPIO.C OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Include) DEFINE(FOSC_1600
-                    -00) DEBUG OBJECTEXTEND PRINT(.\LST\GPIO.lst) OBJECT(.\Output\GPIO.obj)
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE Code\GPIO.C LARGE BROWSE INCDIR(..\Include) DEFINE(FOSC_160000) DEBUG OBJEC
+                    -TEXTEND PRINT(.\LST\GPIO.lst) OBJECT(.\Output\GPIO.obj)
 
 line level    source
 
@@ -48,200 +48,69 @@ line level    source
   29          #include "YXT.h"
   30          
   31          
-  32          #ifdef JINPENG_4860
-              const uint16_t uiBatStatus48[8] = {420,426,432,439,445,451,457,464};
-              const uint16_t uiBatStatus60[8] = {520,528,536,542,550,558,566,574};
-              const uint16_t uiBatStatus72[8] = {0};
-              #elif defined JINPENG_6072
-              const uint16_t uiBatStatus48[8] = {0};
-              const uint16_t uiBatStatus60[8] = {480,493,506,519,532,545,558,570};
-              const uint16_t uiBatStatus72[8] = {550,569,589,608,628,647,667,686};
-              #elif defined LCD6040
-              const uint16_t uiBatStatus48[] = {425,432,444,456,468};
-              const uint16_t uiBatStatus60[] = {525,537,553,566,578};
-              const uint16_t uiBatStatus72[] = {630,641,661,681,701};
-              #else
-  45          const uint16_t uiBatStatus48[8] = {420,427,435,444,453,462,471,481};
-C51 COMPILER V9.50a   GPIO                                                                 11/25/2017 23:50:33 PAGE 2   
+  32          /**
+  33            * @brief  Configures the IWDG to generate a Reset if it is not refreshed at the
+  34            *         correct time. 
+  35            * @param  None
+  36            * @retval None
+  37            */
+  38          static void WDG_Config(void)
+  39          {
+  40   1      }
+  41          
+  42          //enum GPIO_PORT = {GPIO0,GPIO1,GPIO2,GPIO3};
+  43          //enum GPIO_PIN  = {PIN0,PIN1,PIN2,PIN3,PIN4,PIN5,PIN6,PIN7};
+  44          
+  45          void GPIO_Init(uint8_t port, uint8_t pin, uint8_t mode)
+C51 COMPILER V9.50a   GPIO                                                                 12/04/2017 00:08:34 PAGE 2   
 
-  46          const uint16_t uiBatStatus60[8] = {520,531,544,556,568,577,587,595};
-  47          const uint16_t uiBatStatus72[8] = {630,642,653,664,675,687,700,715};
-  48          #endif
-  49          
-  50          BIKE_STATUS sBike;
-  51          BIKE_CONFIG sConfig;
-  52          volatile uint16_t  uiSysTick = 0;
-  53          uint16_t uiSpeedBuf[16];
-  54          uint16_t uiVolBuf[28];
-  55          uint16_t uiTempBuf[4];
-  56          
-  57          #if ( TIME_ENABLE == 1 )
-              uint8_t ucUart1Buf[16];
-              uint8_t ucUart1Index=0;
-              #endif
-  61          
-  62          #if 0
-              
-              /**
-                * @brief  Configures the IWDG to generate a Reset if it is not refreshed at the
-                *         correct time. 
-                * @param  None
-                * @retval None
-                */
-              static void IWDG_Config(void)
-              {
-              }
-              
-              void GPIO_Init(uint8_t port, uint8_t pin, uint8_t mode)
-              {
-                      switch ( mode ){
-                              case GPIO_QUASI:
-                                      switch(port){
-                                              case P0:        P0M1&=~(1<<pin);P0M2&=~(1<<pin);break;
-                                              case P1:        P1M1&=~(1<<pin);P1M2&=~(1<<pin);break;
-                                              case P2:        P2M1&=~(1<<pin);P2M2&=~(1<<pin);break;
-                                              case P3:        P3M1&=~(1<<pin);P3M2&=~(1<<pin);break;
-                                              default:        break;
-                                      }
-                                      break;
-                              case GPIO_PUSH_PULL:
-                                      switch(port){
-                                              case P0:        P0M1&=~(1<<pin);P0M2|=(1<<pin);break;
-                                              case P1:        P1M1&=~(1<<pin);P1M2|=(1<<pin);break;
-                                              case P2:        P2M1&=~(1<<pin);P2M2|=(1<<pin);break;
-                                              case P3:        P3M1&=~(1<<pin);P3M2|=(1<<pin);break;
-                                              default:        break;
-                                      }
-                                      break;
-                              case GPIO_INPUT_ONLY:
-                                      switch(port){
-                                              case P0:        P0M1|=(1<<pin);P0M2&=~(1<<pin);break;
-                                              case P1:        P1M1|=(1<<pin);P1M2&=~(1<<pin);break;
-                                              case P2:        P2M1|=(1<<pin);P2M2&=~(1<<pin);break;
-                                              case P3:        P3M1|=(1<<pin);P3M2&=~(1<<pin);break;
-                                              default:        break;
-                                      }
-                                      break;
-                              case GPIO_OPEN_DRAIN:
-                                      switch(port){
-                                              case P0:        P0M1|=(1<<pin);P0M2|=(1<<pin);break;
-                                              case P1:        P1M1|=(1<<pin);P1M2|=(1<<pin);break;
-C51 COMPILER V9.50a   GPIO                                                                 11/25/2017 23:50:33 PAGE 3   
-
-                                              case P2:        P2M1|=(1<<pin);P2M2|=(1<<pin);break;
-                                              case P3:        P3M1|=(1<<pin);P3M2|=(1<<pin);break;
-                                              default:        break;
-                                      }
-                                      break;
-                              default : break;
-                      }                               
-              }
-              
-              uint8_t GPIO_Read(uint8_t port, uint8_t pin)
-              {
-                      GPIO_Init(port,pin,GPIO_INPUT_ONLY);
-                      return (port>>pin)&0x01;
-              }
-              
-              void GetSysVoltage(void)
-              {       
-              #if defined BENLING_OUSHANG
-                      uint16_t uiVol;
-                      for(i=0;i<0xFF;i++){
-                              if ( GetVolStabed(&uiVol) && (uiVol > 120) ) break;
-                              FEED_DOG();  
-                      }
-                      if ( 720 <= uiVol && uiVol <= 870 ){
-                              sConfig.uiSysVoltage = 72;
-                              WriteConfig();
-                      } else if ( 480 <= uiVol && uiVol <= 600 ){
-                              sConfig.uiSysVoltage = 60;
-                              WriteConfig();
-                      }
-              #elif defined BENLING_BL48_60
-                      uint16_t uiVol;
-                      for(i=0;i<0xFF;i++){
-                              if ( GetVolStabed(&uiVol) && (uiVol > 120) ) break;
-                              FEED_DOG();  
-                      }
-                      if ( 610 <= uiVol && uiVol <= 720 ){
-                              sConfig.uiSysVoltage = 60;
-                              WriteConfig();
-                      }       else if ( 360 <= uiVol && uiVol <= 500 ){
-                              sConfig.uiSysVoltage = 48;
-                              WriteConfig();
-                      }               
-              #elif defined BENLING_ZHONGSHA
-                      sConfig.uiSysVoltage = 72;
-              #elif (defined OUJUN) || (defined OUPAINONG_6072)
-                      //GPIO_Init(V72_PORT, V72_PIN, GPIO_INPUT_ONLY);
-                      GPIO_Init(V48_PORT, V48_PIN, GPIO_INPUT_ONLY);
-                      if ( GPIO_Read(V48_PORT, V48_PIN) == RESET ){
-                              sConfig.uiSysVoltage = 72;
-                      } else {
-                              sConfig.uiSysVoltage = 60;
-                      }
-              #elif defined OUPAINONG_4860 || defined JIKE13050
-                      GPIO_Init(V48_PORT, V48_PIN, GPIO_INPUT_ONLY);
-                      if ( GPIO_Read(V48_PORT, V48_PIN) == RESET ){
-                              sConfig.uiSysVoltage = 48;
-                      } else {
-                              sConfig.uiSysVoltage = 60;
-                      }
-              #elif defined LCD9040_4860
-                      GPIO_Init(V48_PORT, V48_PIN, GPIO_INPUT_ONLY);
-C51 COMPILER V9.50a   GPIO                                                                 11/25/2017 23:50:33 PAGE 4   
-
-                      if ( GPIO_Read(V48_PORT, V48_PIN) == RESET ){
-                              sConfig.uiSysVoltage = 60;
-                      } else {
-                              sConfig.uiSysVoltage = 48;
-                      }
-              #else
-                      GPIO_Init(V72_PORT, V72_PIN, GPIO_INPUT_ONLY);
-                      GPIO_Init(V48_PORT, V48_PIN, GPIO_INPUT_ONLY);
-                      if ( GPIO_Read(V72_PORT, V72_PIN) == RESET ){
-                              sConfig.uiSysVoltage = 72;
-                      } else {
-                              if ( GPIO_Read(V48_PORT, V48_PIN) == RESET ){
-                                      sConfig.uiSysVoltage = 48;
-                              } else {
-                                      sConfig.uiSysVoltage = 60;
-                              }
-                      }
-              #endif
-              }
-              
-              void Light_Task(void)
-              {
-                      uint8_t ucSpeedMode;
-              
-                      if( GPIO_Read(NearLight_PORT,NearLight_PIN)     == 1 ) sBike.bNearLight = 1; else sBike.bNearLight = 0;
-                      //if( GPIO_Read(TurnRight_PORT,TurnRight_PIN)   == 1 ) sBike.bTurnRight = 1; else sBike.bTurnRight = 0;
-                      //if( GPIO_Read(TurnLeft_PORT,TurnLeft_PIN)     == 1 ) sBike.bTurnLeft  = 1; else sBike.bTurnLeft  = 0;
-                      //if( GPIO_Read(Braked_PORT,Braked_PIN)                 == 1 ) sBike.bBraked    = 1; else sBike.bBraked    = 0;
-                      
-                      if ( sBike.bYXTERR ){
-                              ucSpeedMode = 0;
-                              if( GPIO_Read(SPMODE1_PORT,SPMODE1_PIN) == 1 ) ucSpeedMode |= 1<<0;
-                              if( GPIO_Read(SPMODE2_PORT,SPMODE2_PIN) == 1 ) ucSpeedMode |= 1<<1;
-                              if( GPIO_Read(SPMODE3_PORT,SPMODE3_PIN) == 1 ) ucSpeedMode |= 1<<2;
-                      #ifdef SPMODE4_PORT
-                              if( GPIO_Read(SPMODE4_PORT,SPMODE4_PIN) == 1 ) ucSpeedMode |= 1<<3;
-                      #endif
-                              switch(ucSpeedMode){
-                                      case 0x01:      sBike.ucSpeedMode = 1; break;
-                                      case 0x02:      sBike.ucSpeedMode = 2; break;
-                                      case 0x04:      sBike.ucSpeedMode = 3; break;
-                                      case 0x08:      sBike.ucSpeedMode = 4; break;
-                                      default:        sBike.ucSpeedMode = 0; break;
-                              }
-                              sBike.ucPHA_Speed= GetSpeed();
-                              sBike.ucSpeed   = (uint32_t)sBike.ucPHA_Speed*1000UL/sConfig.uiSpeedScale;
-                      }
-              }
-              
-              #if ( TIME_ENABLE == 1 )
+  46          {
+  47   1              switch ( mode ){
+  48   2                      case GPIO_QUASI:
+  49   2                              switch(port){
+  50   3                                      case 0x80:      P0M1&=~(1<<pin);P0M2&=~(1<<pin);break;
+  51   3                                      case 0x90:      P1M1&=~(1<<pin);P1M2&=~(1<<pin);break;
+  52   3                                      case 0xB0:      P3M1&=~(1<<pin);P3M2&=~(1<<pin);break;
+  53   3                                      default:        break;
+  54   3                              }
+  55   2                              break;
+  56   2                      case GPIO_PUSH_PULL:
+  57   2                              switch(port){
+  58   3                                      case 0x80:      P0M1&=~(1<<pin);P0M2|=(1<<pin);break;
+  59   3                                      case 0x90:      P1M1&=~(1<<pin);P1M2|=(1<<pin);break;
+  60   3                                      case 0xB0:      P3M1&=~(1<<pin);P3M2|=(1<<pin);break;
+  61   3                                      default:        break;
+  62   3                              }
+  63   2                              break;
+  64   2                      case GPIO_INPUT_ONLY:
+  65   2                              switch(port){
+  66   3                                      case 0x80:      P0M1|=(1<<pin);P0M2&=~(1<<pin);break;
+  67   3                                      case 0x90:      P1M1|=(1<<pin);P1M2&=~(1<<pin);break;
+  68   3                                      case 0xB0:      P3M1|=(1<<pin);P3M2&=~(1<<pin);break;
+  69   3                                      default:        break;
+  70   3                              }
+  71   2                              break;
+  72   2                      case GPIO_OPEN_DRAIN:
+  73   2                              switch(port){
+  74   3                                      case 0x80:      P0M1|=(1<<pin);P0M2|=(1<<pin);break;
+  75   3                                      case 0x90:      P1M1|=(1<<pin);P1M2|=(1<<pin);break;
+  76   3                                      case 0xB0:      P3M1|=(1<<pin);P3M2|=(1<<pin);break;
+  77   3                                      default:        break;
+  78   3                              }
+  79   2                              break;
+  80   2                      default : break;
+  81   2              }       
+  82   1      }
+  83          
+  84          uint8_t GPIO_Read(uint8_t port, uint8_t pin)
+  85          {
+  86   1              GPIO_Init(port,pin,GPIO_INPUT_ONLY);
+  87   1              return (port>>pin)&0x01;
+  88   1      }
+  89          
+  90          
+  91          
+  92          #if ( TIME_ENABLE == 1 )
               void InitUART(void)
               {
                       if ( sBike.bUart == 0 )
@@ -254,11 +123,11 @@ line level    source
                               - Odd parity
                               - Receive and transmit enabled
                               - UART Clock disabled
-C51 COMPILER V9.50a   GPIO                                                                 11/25/2017 23:50:33 PAGE 5   
-
                       */
                       UART1_Init((uint32_t)9600, UART1_WORDLENGTH_8D,UART1_STOPBITS_1, UART1_PARITY_ODD,
                                                  UART1_SYNCMODE_CLOCK_DISABLE, UART1_MODE_RX_ENABLE|UART1_MODE_TX_DISABLE);
+C51 COMPILER V9.50a   GPIO                                                                 12/04/2017 00:08:34 PAGE 3   
+
               
                       /* Enable the UART Receive interrupt: this interrupt is generated when the UART
                       receive data register is not empty */
@@ -300,41 +169,41 @@ line level    source
                       }
               }
               #endif 
-              
-              void Calibration(void)
-              {
-                      uint8_t i;
-                      uint16_t uiVol;
-                      
-                      //GPIO_Init(GPIOD, GPIO_PIN_1, GPIO_MODE_OUT_OD_HIZ_SLOW);
-              
-                      for(i=0;i<32;i++){
-                              //GPIO_WriteLow (GPIOD,GPIO_PIN_1);
-                              Timer1_Delay1ms(1000);
-                              if( GPIO_Read(SPMODE1_PORT      , SPMODE1_PIN) ) break;
-                              //GPIO_WriteHigh (GPIOD,GPIO_PIN_1);
-                              Timer1_Delay1ms(1000);
-                              if( GPIO_Read(SPMODE1_PORT      , SPMODE1_PIN)  == RESET ) break;
-                      }
-                      if ( i == 32 ){
-                              for(i=0;i<0xFF;i++){
-C51 COMPILER V9.50a   GPIO                                                                 11/25/2017 23:50:33 PAGE 6   
+ 147          
+ 148          void Calibration(void)
+ 149          {
+ 150   1              uint8_t i;
+ 151   1              uint16_t uiVol;
+ 152   1              
+ 153   1              //GPIO_Init(GPIOD, GPIO_PIN_1, GPIO_MODE_OUT_OD_HIZ_SLOW);
+ 154   1      
+ 155   1              for(i=0;i<32;i++){
+ 156   2                      //GPIO_WriteLow (GPIOD,GPIO_PIN_1);
+ 157   2                      Timer1_Delay1ms(1000);
+ 158   2                      if( GPIO_Read(SPMODE1_PORT      , SPMODE1_PIN) ) break;
+ 159   2                      //GPIO_WriteHigh (GPIOD,GPIO_PIN_1);
+ 160   2                      Timer1_Delay1ms(1000);
+ 161   2                      if( GPIO_Read(SPMODE1_PORT      , SPMODE1_PIN)  == RESET ) break;
+ 162   2              }
+ 163   1              if ( i == 32 ){
+ 164   2                      for(i=0;i<0xFF;i++){
+ 165   3                              if ( GetVolStabed(&uiVol) && (uiVol > 120) ) break;
+ 166   3                              FEED_DOG();  
+ 167   3                      }
+C51 COMPILER V9.50a   GPIO                                                                 12/04/2017 00:08:34 PAGE 4   
 
-                                      if ( GetVolStabed(&uiVol) && (uiVol > 120) ) break;
-                                      FEED_DOG();  
-                              }
-                              sBike.uiVoltage         = uiVol;
-                              //sBike.siTemperature= GetTemp();
-                              //sBike.ucSpeed         = GetSpeed();
-              
-                              sConfig.uiVolScale      = (uint32_t)sBike.uiVoltage*1000UL/VOL_CALIBRATIOIN;            //60.00V
-                              //sConfig.TempScale     = (long)sBike.siTemperature*1000UL/TEMP_CALIBRATIOIN;   //25.0C
-                              //sConfig.uiSpeedScale = (uint32_t)sBike.ucSpeed*1000UL/SPEED_CALIBRATIOIN;     //30km/h
-                              //sConfig.ulMile = 0;
-                              WriteConfig();
-                      }
-              
-              #if ( TIME_ENABLE == 1 )
+ 168   2                      sBike.uiVoltage         = uiVol;
+ 169   2                      //sBike.siTemperature= GetTemp();
+ 170   2                      //sBike.ucSpeed         = GetSpeed();
+ 171   2      
+ 172   2                      sConfig.uiVolScale      = (uint32_t)sBike.uiVoltage*1000UL/VOL_CALIBRATIOIN;            //60.00V
+ 173   2                      //sConfig.TempScale     = (long)sBike.siTemperature*1000UL/TEMP_CALIBRATIOIN;   //25.0C
+ 174   2                      //sConfig.uiSpeedScale = (uint32_t)sBike.ucSpeed*1000UL/SPEED_CALIBRATIOIN;     //30km/h
+ 175   2                      //sConfig.ulMile = 0;
+ 176   2                      WriteConfig();
+ 177   2              }
+ 178   1      
+ 179   1      #if ( TIME_ENABLE == 1 )
                       for(i=0;i<32;i++){
                               GPIO_WriteLow (GPIOD,GPIO_PIN_1);
                               Timer1_Delay1ms(1000);
@@ -348,140 +217,135 @@ line level    source
                       } else
                               sBike.bUart = 0;
               #endif
-              }
-              #endif
- 322          
- 323          #define TIMER0_TH0_1MS  0x05
- 324          #define TIMER0_TL0_1MS  0x35
- 325          #define INC_SYS_TICK()  uiSysTick++
- 326          
- 327          void Timer0_Init(void)
- 328          {
- 329   1              //TMOD = 0XFF;
- 330   1              clr_TR0;
- 331   1              TIMER0_MODE0_ENABLE;                        //Timer 0 and Timer 1 mode configuration
- 332   1              clr_T0M;
- 333   1          
- 334   1              TH0 = TIMER0_TH0_1MS;
- 335   1              TL0 = TIMER0_TL0_1MS;
- 336   1          
- 337   1              set_ET0;                                    //enable Timer0 interrupt
- 338   1              set_EA;                                     //enable interrupts
- 339   1              
- 340   1              set_TR0;                                    //Timer0 run
- 341   1      }
- 342          
- 343          /*********************************************************************************************************
+ 193   1      }
+ 194          
+ 195          #define TIMER0_TH0_1MS  0x05
+ 196          #define TIMER0_TL0_1MS  0x35
+ 197          #define INC_SYS_TICK()  uiSysTick++
+ 198          
+ 199          void Timer0_Init(void)
+ 200          {
+ 201   1              //TMOD = 0XFF;
+ 202   1              clr_TR0;
+ 203   1              TIMER0_MODE0_ENABLE;                        //Timer 0 and Timer 1 mode configuration
+ 204   1              clr_T0M;
+ 205   1          
+ 206   1              TH0 = TIMER0_TH0_1MS;
+ 207   1              TL0 = TIMER0_TL0_1MS;
+ 208   1          
+ 209   1              set_ET0;                                    //enable Timer0 interrupt
+ 210   1              set_EA;                                     //enable interrupts
+ 211   1              
+ 212   1              set_TR0;                                    //Timer0 run
+ 213   1      }
+ 214          
+ 215          /*********************************************************************************************************
              -***
- 344          *    TIMER 0 interrupt subroutine
- 345          **********************************************************************************************************
+ 216          *    TIMER 0 interrupt subroutine
+ 217          **********************************************************************************************************
              -**/
- 346          void Timer0_ISR (void) interrupt 1          //interrupt address is 0x000B
- 347          {
- 348   1              clr_TR0;
- 349   1          TH0 = TIMER0_TH0_1MS;
- 350   1          TL0 = TIMER0_TL0_1MS; 
- 351   1              set_TR0;        
-C51 COMPILER V9.50a   GPIO                                                                 11/25/2017 23:50:33 PAGE 7   
+ 218          void Timer0_ISR (void) interrupt 1          //interrupt address is 0x000B
+ 219          {
+ 220   1              clr_TR0;
+ 221   1          TH0 = TIMER0_TH0_1MS;
+ 222   1          TL0 = TIMER0_TL0_1MS; 
+ 223   1              set_TR0;        
+ 224   1              
+ 225   1              uiSysTick++;
+ 226   1              if ( (uiSysTick % 10) == 0)
+ 227   1                      LRFlashTask();
+C51 COMPILER V9.50a   GPIO                                                                 12/04/2017 00:08:34 PAGE 5   
 
- 352   1              
- 353   1              uiSysTick++;
- 354   1              if ( (uiSysTick % 10) == 0)
- 355   1                      LRFlashTask();
- 356   1              
- 357   1              ADC_TRIG();
- 358   1      }
- 359          
- 360          void main(void)
- 361          {
- 362   1              uint8_t i;
- 363   1              uint16_t uiTick;
- 364   1              uint16_t uiCount=0;
- 365   1              uint16_t uiVol=0;
- 366   1              uint16_t tick_100ms=0;
- 367   1              
- 368   1              WDG_Config();
-*** WARNING C206 IN LINE 368 OF Code\GPIO.C: 'WDG_Config': missing function-prototype
- 369   1              Timer0_Init();  
- 370   1              HotReset();
- 371   1              if ( sBike.bHotReset == 0 ) {
- 372   2                      BL55072_Config(1);
- 373   2              } else
- 374   1                      BL55072_Config(0);
- 375   1      
- 376   1      //      for(i=0;i<32;i++){      GetVol();       /*FEED_DOG(); */ }
- 377   1      //      for(i=0;i<16;i++){      GetSpeed();     /*FEED_DOG(); */ }
- 378   1              for(i=0;i<4;i++) {      GetTemp();      FEED_DOG(); }
-*** WARNING C206 IN LINE 378 OF Code\GPIO.C: 'GetTemp': missing function-prototype
-*** WARNING C206 IN LINE 378 OF Code\GPIO.C: 'IWDG_ReloadCounter': missing function-prototype
- 379   1      
- 380   1              InitConfig();
- 381   1              Calibration();
-*** WARNING C206 IN LINE 381 OF Code\GPIO.C: 'Calibration': missing function-prototype
- 382   1              
- 383   1      #if ( TIME_ENABLE == 1 )        
+ 228   1              
+ 229   1              ADC_TRIG();
+ 230   1      }
+ 231          
+ 232          void main(void)
+ 233          {
+ 234   1              uint8_t i;
+ 235   1              uint16_t uiTick;
+ 236   1              uint16_t uiCount=0;
+ 237   1              uint16_t uiVol=0;
+ 238   1              uint16_t tick_100ms=0;
+ 239   1              
+ 240   1              WDG_Config();
+ 241   1              Timer0_Init();  
+ 242   1              HotReset();
+ 243   1      /*      if ( sBike.bHotReset == 0 ) {
+ 244   1                      BL55072_Config(1);
+ 245   1              } else
+ 246   1                      BL55072_Config(0);
+ 247   1      */
+ 248   1              ADC_Init();
+ 249   1      //      for(i=0;i<32;i++){      GetVol();       /*FEED_DOG(); */ }
+ 250   1      //      for(i=0;i<16;i++){      GetSpeed();     /*FEED_DOG(); */ }
+ 251   1      //      for(i=0;i<4;i++) {      GetTemp();      FEED_DOG(); }
+ 252   1      
+ 253   1              InitConfig();
+ 254   1              Calibration();
+ 255   1              
+ 256   1      #if ( TIME_ENABLE == 1 )        
                       //sBike.bHasTimer = !PCF8563_Check();
                       sBike.bHasTimer = PCF8563_GetTime(PCF_Format_BIN,&RtcTime);
                       #ifndef DENGGUAN_XUNYING_T
                       InitUART();
                       #endif
               #endif
- 390   1      
- 391   1      #if ( YXT_ENABLE == 1 )
- 392   1              YXT_Init();  
- 393   1      #endif
- 394   1        
- 395   1              ENABLE_INTERRUPTS();
- 396   1              
- 397   1              if ( sBike.bHotReset == 0 ) {
- 398   2                      while ( Get_SysTick() < PON_ALLON_TIME ) FEED_DOG();
- 399   2                      BL55072_Config(0);
- 400   2              }
- 401   1              
- 402   1              GetVolStabed(&uiVol);
-*** WARNING C206 IN LINE 402 OF Code\GPIO.C: 'GetVolStabed': missing function-prototype
-*** ERROR C267 IN LINE 402 OF Code\GPIO.C: 'GetVolStabed': requires ANSI-style prototype
- 403   1              sBike.uiVoltage = (uint32_t)uiVol*1000UL/sConfig.uiVolScale;
- 404   1              sBike.siTemperature = GetTemp();
- 405   1              
- 406   1              while(1){
- 407   2                      uiTick = Get_SysTick();
-C51 COMPILER V9.50a   GPIO                                                                 11/25/2017 23:50:33 PAGE 8   
+ 263   1      
+ 264   1      #if ( YXT_ENABLE == 1 )
+ 265   1              //YXT_Init();  
+ 266   1      #endif
+ 267   1        
+ 268   1              ENABLE_INTERRUPTS();
+ 269   1              
+ 270   1              if ( sBike.bHotReset == 0 ) {
+ 271   2                      while ( Get_SysTick() < PON_ALLON_TIME ) FEED_DOG();
+ 272   2                      //BL55072_Config(0);
+ 273   2              }
+ 274   1              
+ 275   1              GetVolStabed(&uiVol);
+ 276   1              sBike.uiVoltage = (uint32_t)uiVol*1000UL/sConfig.uiVolScale;
+ 277   1              sBike.siTemperature = GetTemp();
+*** WARNING C206 IN LINE 277 OF Code\GPIO.C: 'GetTemp': missing function-prototype
+ 278   1              
+ 279   1              while(1){
+ 280   2                      uiTick = Get_SysTick();
+ 281   2                      
+ 282   2                      if ( (uiTick >= tick_100ms && (uiTick - tick_100ms) >= 100 ) || \
+ 283   3                               (uiTick <  tick_100ms && (0xFFFF - tick_100ms + uiTick) >= 100 ) ) {
+ 284   3                              tick_100ms = uiTick;
+ 285   3                              uiCount ++;
+ 286   3                              
+ 287   3                              if ( (uiCount % 4 ) == 0 ){
+ 288   4                                      if ( GetVolStabed(&uiVol) ){
+C51 COMPILER V9.50a   GPIO                                                                 12/04/2017 00:08:34 PAGE 6   
 
- 408   2                      
- 409   2                      if ( (uiTick >= tick_100ms && (uiTick - tick_100ms) >= 100 ) || \
- 410   3                               (uiTick <  tick_100ms && (0xFFFF - tick_100ms + uiTick) >= 100 ) ) {
- 411   3                              tick_100ms = uiTick;
- 412   3                              uiCount ++;
- 413   3                              
- 414   3                              if ( (uiCount % 4 ) == 0 ){
- 415   4                                      if ( GetVolStabed(&uiVol) ){
- 416   5                                              sBike.uiVoltage = (uint32_t)uiVol*1000UL/sConfig.uiVolScale;
- 417   5                                              sBike.ucBatStatus= GetBatStatus(sBike.uiVoltage);
- 418   5                                      }
- 419   4                              }
- 420   3                              if ( (uiCount % 10) == 0 ){
- 421   4                              //      sBike.siTemperature= (long)GetTemp()    *1000UL/sConfig.TempScale;
- 422   4                                      sBike.siTemperature= GetTemp();
- 423   4                              }
- 424   3                      #ifdef LCD8794GCT
+ 289   5                                              sBike.uiVoltage = (uint32_t)uiVol*1000UL/sConfig.uiVolScale;
+ 290   5                                              sBike.ucBatStatus= GetBatStatus(sBike.uiVoltage);
+ 291   5                                      }
+ 292   4                              }
+ 293   3                              if ( (uiCount % 10) == 0 ){
+ 294   4                              //      sBike.siTemperature= (long)GetTemp()    *1000UL/sConfig.TempScale;
+ 295   4                                      sBike.siTemperature= GetTemp();
+ 296   4                              }
+ 297   3                      #ifdef LCD8794GCT
                                       //sBike.ucEnergy        = GetBatEnergy(sBike.uiVoltage);
                               #endif
- 427   3                      
- 428   3                              Light_Task();
- 429   3                              MileTask(); 
- 430   3                              
- 431   3                      #if ( YXT_ENABLE == 1 )
- 432   3                              YXT_Task(&sBike,&sConfig);  
- 433   3                      #endif
- 434   3                      
- 435   3                              SpeedCaltTask();
- 436   3                      
- 437   3                      #if ( TIME_ENABLE == 1 )        
+ 300   3                      
+ 301   3                              Light_Task();
+ 302   3                              MileTask(); 
+ 303   3                              
+ 304   3                      #if ( YXT_ENABLE == 1 )
+ 305   3                              //YXT_Task(&sBike,&sConfig);  
+ 306   3                      #endif
+ 307   3                      
+ 308   3                              SpeedCaltTask();
+ 309   3                      
+ 310   3                      #if ( TIME_ENABLE == 1 )        
                                       TimeTask();   
                               #endif
- 440   3            
- 441   3                      #ifdef LCD_SEG_TEST
+ 313   3            
+ 314   3                      #ifdef LCD_SEG_TEST
                                       if ( ++uiCount >= 100 ) uiCount = 0;
                                       sBike.uiVoltage         = uiCount/10 + uiCount/10*10UL + uiCount/10*100UL + uiCount/10*1000UL;
                                       sBike.siTemperature     = uiCount/10 + uiCount/10*10UL + uiCount/10*100UL;
@@ -494,24 +358,37 @@ line level    source
                                       //sBike.ucEnergy        = uiCount/10 + uiCount/10*10UL;
                                       #endif
                               #endif
- 453   3              
- 454   3                              MenuUpdate(&sBike);
- 455   3                              
- 456   3                              /* Reload IWDG counter */
- 457   3                              FEED_DOG();  
- 458   3                      } 
- 459   2      
- 460   2              #if ( TIME_ENABLE == 1 )
+ 326   3              
+ 327   3                              //MenuUpdate(&sBike);
+ 328   3                              
+ 329   3                              /* Reload IWDG counter */
+ 330   3                              FEED_DOG();  
+ 331   3                      } 
+ 332   2      
+ 333   2              #if ( TIME_ENABLE == 1 )
                               #ifndef DENGGUAN_XUNYING_T
                               UartTask();
                               #endif
                       #endif
- 465   2              }
- 466   1      }
- 467          
- 468          
-C51 COMPILER V9.50a   GPIO                                                                 11/25/2017 23:50:33 PAGE 9   
+ 338   2              }
+ 339   1      }
+*** WARNING C280 IN LINE 234 OF Code\GPIO.C: 'i': unreferenced local variable
+ 340          
+ 341          
+ 342          
 
- 469          
 
-C51 COMPILATION COMPLETE.  5 WARNING(S),  1 ERROR(S)
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    945    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----      10
+C51 COMPILER V9.50a   GPIO                                                                 12/04/2017 00:08:34 PAGE 7   
+
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  2 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,1 @@
+"Code\Flash.c" LARGE BROWSE INCDIR(..\Include) DEFINE (FOSC_160000) DEBUG OBJECTEXTEND PRINT(.\LST\Flash.lst) OBJECT(.\Output\Flash.obj)

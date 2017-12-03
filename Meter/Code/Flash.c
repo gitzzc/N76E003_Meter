@@ -19,6 +19,7 @@
 #include "Common.h"
 #include "Delay.h"
 
+#include "bike.h"
 //***********************************************************************************************************
 /*
 	Since the DATAFLASH is in the APROM. Program command is same as program APROM
@@ -39,26 +40,19 @@
 //---------------------------------------------------------------
 #define     DATA_SIZE           256   
 #define     DATA_START_ADDR     0x3700 					
+//-----------------------------------------------------------------------------------------------------------/
 
 volatile unsigned char code Data_Flash[DATA_SIZE] _at_ DATA_START_ADDR;
+//-----------------------------------------------------------------------------------------------------------/
 
-/********************************************************************************************
- Following IAP command register is also define in SFR_Macro.h
- 
-	#define set_IAPEN   BIT_TMP=EA;EA=0;TA=0xAA;TA=0x55;CHPCON |= SET_BIT0 ;EA=BIT_TMP
-	#define clr_IAPEN   BIT_TMP=EA;EA=0;TA=0xAA;TA=0x55;CHPCON &= ~SET_BIT0;EA=BIT_TMP
-	#define set_APUEN   BIT_TMP=EA;EA=0;TA=0xAA;TA=0x55;IAPUEN |= SET_BIT0 ;EA=BIT_TMP
-	#define clr_APUEN   BIT_TMP=EA;EA=0;TA=0xAA;TA=0x55;IAPUEN &= ~SET_BIT0;EA=BIT_TMP
-	
-**********************************************************************************************/
 void IAP_ERROR_LED(void)
 {
 	while (1)
 	{
 		LED_OFF();
-		Timer0_Delay1ms(100);
+		Timer1_Delay1ms(100);
 		LED_ON();
-		Timer0_Delay1ms(100);
+		Timer1_Delay1ms(100);
 	}
 
 }
@@ -107,28 +101,18 @@ void Erase_APROM(void)
 UINT8 Erase_APROM_Verify(void)
 {   
     UINT16 u16Count;
-    set_IAPEN;
-    IAPAL = LOBYTE(DATA_START_ADDR);
-    IAPAH = HIBYTE(DATA_START_ADDR);
-    IAPCN = BYTE_READ_AP;
 
     for(u16Count=0;u16Count<DATA_SIZE;u16Count++)
     {   
-        IAPFD = 0x00;    
-        Trigger_IAP();
-        if(IAPFD != 0xFF)
+        if(Data_Flash[u16Count] != 0xFF)
 			return 0;
 			//IAP_ERROR_LED();
-        IAPAL++;
-        if(IAPAL == 0x00)
-			IAPAH++;
     } 
 		
-    clr_IAPEN;
 	return 1;
 }
 //-----------------------------------------------------------------------------------------------------------
-UINT8 Program_APROM(UINT8 buf,UINT16 len)
+UINT8 Program_APROM(UINT8 *buf,UINT16 len)
 {   
     UINT16 u16Count;
 	
@@ -158,49 +142,39 @@ UINT8 Program_APROM(UINT8 buf,UINT16 len)
 	return 1;
 }
 //-----------------------------------------------------------------------------------------------------------
-UINT8 Program_APROM_Verify(UINT8 buf,UINT16 len)
+UINT8 Program_APROM_Verify(UINT8* buf,UINT16 len)
 {   
     UINT16 u16Count;
 	
 	if ( len > DATA_SIZE ) 
 		return 0;
 
-    set_IAPEN;
-    IAPAL = LOBYTE(DATA_START_ADDR);
-    IAPAH = HIBYTE(DATA_START_ADDR);
-    IAPCN = BYTE_READ_AP;
-
-    for(u16Count=0;u16Count<DATA_SIZE;u16Count++)
+    for(u16Count=0;u16Count<len;u16Count++)
     {   
-        Trigger_IAP();
-        if(IAPFD != buf[u16Count])
+        if(Data_Flash[u16Count]!= buf[u16Count])
 			IAP_ERROR_LED();
-        IAPAL++;
-        if(IAPAL == 0)
-        {
-            IAPAH++;
-        }
     } 
-
-    clr_IAPEN;
+	return 1;
 }
 //-----------------------------------------------------------------------------------------------------------
 UINT8 FlashWrite(UINT8* cfg,UINT16 len)
 {
 	Erase_APROM();
 	if ( Erase_APROM_Verify() == 0 ) return 0;
-	if ( Program_APROM((UINT8*)cfg,16) == 0 ) return 0;
-	if ( Program_APROM_Verify((UINT8*),16) == 0 ) return 0;
+	if ( Program_APROM((UINT8*)cfg,len) == 0 ) return 0;
+	if ( Program_APROM_Verify((UINT8*)cfg,len) == 0 ) return 0;
 	return 1;
 }
 
 UINT8 FlashRead(UINT8* cfg,UINT16 len)
 {
+    UINT16 u16Count;
+
 	if ( len > DATA_SIZE ) 
 		return 0;
 	
-	for(i=0;i<len;i++)
-		cfg[i] = Data_Flash[i]
+	for(u16Count=0;u16Count<len;u16Count++)
+		cfg[u16Count] = Data_Flash[u16Count];
 	
 	return 1;
 }

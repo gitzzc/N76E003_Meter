@@ -3,7 +3,168 @@
 <pre>
 <h1>µVision Build Log</h1>
 <h2>Project:</h2>
-D:\Work\hc\Nuvoton\N76E003_Meter\Meter\Meter.uvproj
-Project File Date:  11/27/2017
+Z:\hc\Nuvoton\N76E003_Meter\Meter\Meter.uvproj
+Project File Date:  12/03/2017
 
 <h2>Output:</h2>
+Build target 'GPIO'
+linking...
+BL51 BANKED LINKER/LOCATER V6.22 - SN: K1AMC-910VNC
+COPYRIGHT KEIL ELEKTRONIK GmbH 1987 - 2009
+".\Output\GPIO.obj",
+".\Output\adc.obj",
+".\Output\bike.obj",
+".\Output\Flash.obj",
+".\Output\Common.obj",
+".\Output\Delay.obj",
+".\Output\STARTUP.obj" 
+TO ".\Output\GPIO" 
+PRINT(".\LST\GPIO.m51") RAMSIZE(256) 
+DISABLEWARNING (16) 
+******************************************************************************
+* RESTRICTED VERSION WITH 0800H BYTE CODE SIZE LIMIT; USED: 1BEBH BYTE (348%) *
+******************************************************************************
+Program Size: data=9.1 xdata=649 code=8330
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)
+*** FATAL ERROR L250: CODE SIZE LIMIT IN RESTRICTED VERSION EXCEEDED
+    MODULE:  C:\KEIL\C51\LIB\C51L.LIB (-----)
+    LIMIT:   0800H BYTES
+Target not created
+Rebuild target 'GPIO'
+compiling GPIO.C...
+Code\GPIO.C(276): warning C206: 'GetTemp': missing function-prototype
+Code\GPIO.C(234): warning C280: 'i': unreferenced local variable
+compiling adc.c...
+compiling bike.c...
+compiling Flash.c...
+Code\Flash.c(189): warning C280: 'len': unreferenced local variable
+Code\Flash.c(187): warning C291: not every exit path returns a value
+compiling Common.c...
+compiling Delay.c...
+assembling STARTUP.A51...
+linking...
+Program Size: data=9.1 xdata=649 code=8330
+creating hex file from ".\Output\GPIO"...
+".\Output\GPIO" - 0 Error(s), 4 Warning(s).
+Load "Z:\\hc\\Nuvoton\\N76E003_Meter\\Meter\\Output\\GPIO" 
+Flash Erase Done.
+Flash Write Done: 8074 bytes programmed.
+*** Error: Flash Verify Failed at 0x1000
+Load "Z:\\hc\\Nuvoton\\N76E003_Meter\\Meter\\Output\\GPIO" 
+Flash Erase Done.
+Flash Write Done: 8074 bytes programmed.
+Flash Verify Done: 8074 bytes verified.
+Build target 'GPIO'
+compiling Flash.c...
+Code\Flash.c(189): warning C280: 'len': unreferenced local variable
+Code\Flash.c(187): warning C291: not every exit path returns a value
+linking...
+Program Size: data=9.1 xdata=653 code=8228
+creating hex file from ".\Output\GPIO"...
+".\Output\GPIO" - 0 Error(s), 2 Warning(s).
+Load "Z:\\hc\\Nuvoton\\N76E003_Meter\\Meter\\Output\\GPIO" 
+Load "Z:\\hc\\Nuvoton\\N76E003_Meter\\Meter\\Output\\GPIO" 
+Load "Z:\\hc\\Nuvoton\\N76E003_Meter\\Meter\\Output\\GPIO" 
+Flash Erase Done.
+Flash Write Done: 7972 bytes programmed.
+Flash Verify Done: 7972 bytes verified.
+Build target 'GPIO'
+compiling GPIO.C...
+Code\GPIO.C(276): warning C206: 'GetTemp': missing function-prototype
+Code\GPIO.C(234): warning C280: 'i': unreferenced local variable
+compiling adc.c...
+compiling bike.c...
+compiling Flash.c...
+Code\Flash.c(190): warning C280: 'len': unreferenced local variable
+Code\Flash.c(188): warning C291: not every exit path returns a value
+compiling Common.c...
+compiling Delay.c...
+linking...
+Program Size: data=9.1 xdata=653 code=8177
+creating hex file from ".\Output\GPIO"...
+".\Output\GPIO" - 0 Error(s), 4 Warning(s).
+Build target 'GPIO'
+compiling Flash.c...
+Code\Flash.c(190): warning C280: 'len': unreferenced local variable
+Code\Flash.c(188): warning C291: not every exit path returns a value
+linking...
+Program Size: data=9.1 xdata=653 code=8189
+creating hex file from ".\Output\GPIO"...
+".\Output\GPIO" - 0 Error(s), 2 Warning(s).
+Load "Z:\\hc\\Nuvoton\\N76E003_Meter\\Meter\\Output\\GPIO" 
+Flash Erase Done.
+Flash Write Done: 7933 bytes programmed.
+Flash Verify Done: 7933 bytes verified.
+Build target 'GPIO'
+compiling Flash.c...
+Code\Flash.c(188): warning C291: not every exit path returns a value
+linking...
+Program Size: data=9.1 xdata=653 code=8193
+creating hex file from ".\Output\GPIO"...
+".\Output\GPIO" - 0 Error(s), 1 Warning(s).
+Load "Z:\\hc\\Nuvoton\\N76E003_Meter\\Meter\\Output\\GPIO" 
+Flash Erase Done.
+Flash Write Done: 7937 bytes programmed.
+Flash Verify Done: 7937 bytes verified.
+Build target 'GPIO'
+compiling GPIO.C...
+Code\GPIO.C(276): warning C206: 'GetTemp': missing function-prototype
+Code\GPIO.C(234): warning C280: 'i': unreferenced local variable
+compiling adc.c...
+compiling bike.c...
+compiling Flash.c...
+linking...
+Program Size: data=9.1 xdata=653 code=8232
+creating hex file from ".\Output\GPIO"...
+".\Output\GPIO" - 0 Error(s), 2 Warning(s).
+Build target 'GPIO'
+compiling Flash.c...
+linking...
+Program Size: data=9.1 xdata=653 code=8232
+creating hex file from ".\Output\GPIO"...
+".\Output\GPIO" - 0 Error(s), 0 Warning(s).
+Load "Z:\\hc\\Nuvoton\\N76E003_Meter\\Meter\\Output\\GPIO" 
+Flash Erase Done.
+Flash Write Done: 7976 bytes programmed.
+Flash Verify Done: 7976 bytes verified.
+Build target 'GPIO'
+compiling GPIO.C...
+Code\GPIO.C(277): warning C206: 'GetTemp': missing function-prototype
+Code\GPIO.C(234): warning C280: 'i': unreferenced local variable
+linking...
+Program Size: data=9.1 xdata=653 code=8235
+creating hex file from ".\Output\GPIO"...
+".\Output\GPIO" - 0 Error(s), 2 Warning(s).
+Load "Z:\\hc\\Nuvoton\\N76E003_Meter\\Meter\\Output\\GPIO" 
+Flash Erase Done.
+Flash Write Done: 7979 bytes programmed.
+Flash Verify Done: 7979 bytes verified.
+Build target 'GPIO'
+compiling adc.c...
+linking...
+Program Size: data=9.1 xdata=653 code=8220
+creating hex file from ".\Output\GPIO"...
+".\Output\GPIO" - 0 Error(s), 0 Warning(s).
+Build target 'GPIO'
+linking...
+Program Size: data=9.1 xdata=653 code=8220
+creating hex file from ".\Output\GPIO"...
+".\Output\GPIO" - 0 Error(s), 0 Warning(s).
+Load "Z:\\hc\\Nuvoton\\N76E003_Meter\\Meter\\Output\\GPIO" 
+Flash Erase Done.
+Flash Write Done: 7964 bytes programmed.
+Flash Verify Done: 7964 bytes verified.
+Build target 'GPIO'
+compiling GPIO.C...
+Code\GPIO.C(277): warning C206: 'GetTemp': missing function-prototype
+Code\GPIO.C(234): warning C280: 'i': unreferenced local variable
+compiling adc.c...
+compiling bike.c...
+linking...
+Program Size: data=9.1 xdata=653 code=8222
+creating hex file from ".\Output\GPIO"...
+".\Output\GPIO" - 0 Error(s), 2 Warning(s).
+Load "Z:\\hc\\Nuvoton\\N76E003_Meter\\Meter\\Output\\GPIO" 
+Flash Erase Done.
+Flash Write Done: 7966 bytes programmed.
+Flash Verify Done: 7966 bytes verified.

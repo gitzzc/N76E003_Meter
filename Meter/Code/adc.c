@@ -44,7 +44,7 @@ void READ_BANDGAP()								// Read band-gap actually value after UID two byte.
 	clr_IAPEN;
 	
 	Bandgap_Value = ((uint16_t)BandgapHigh<<4)+BandgapLow;
-	uiBandgap_Voltage = 3072*Bandgap_Value/0x0fff;
+	uiBandgap_Voltage = 3072UL*Bandgap_Value/0x0fff;
 }
 			
 void ADC_Init(void)
@@ -54,6 +54,7 @@ void ADC_Init(void)
 	ADC_Bypass();
 	
 	Enable_ADC_AIN0;
+	set_EADC;
 }
 
 /******************************************************************************

@@ -178,6 +178,83 @@ uint8_t GetSpeed(void)
   return uiSpeed;
 }
 
+
+void GetSysVoltage(void)
+{	
+#if defined BENLING_OUSHANG
+	uint16_t uiVol;
+	for(i=0;i<0xFF;i++){
+		if ( GetVolStabed(&uiVol) && (uiVol > 120) ) break;
+		FEED_DOG();  
+	}
+	if ( 720 <= uiVol && uiVol <= 870 ){
+		sConfig.uiSysVoltage = 72;
+		WriteConfig();
+	} else if ( 480 <= uiVol && uiVol <= 600 ){
+		sConfig.uiSysVoltage = 60;
+		WriteConfig();
+	}
+#elif defined VD61723650
+	uint16_t uiVol;
+	for(i=0;i<0xFF;i++){
+		if ( GetVolStabed(&uiVol) && (uiVol > 120) ) break;
+		FEED_DOG();  
+	}
+	if ( 610 <= uiVol && uiVol <= 720 ){
+		sConfig.uiSysVoltage = 60;
+		WriteConfig();
+	}	else if ( 360 <= uiVol && uiVol <= 500 ){
+		sConfig.uiSysVoltage = 48;
+		WriteConfig();
+	}		
+#elif defined VD48
+	sConfig.uiSysVoltage = 48;
+#elif defined VD60
+	sConfig.uiSysVoltage = 60;
+#elif defined VD72
+	sConfig.uiSysVoltage = 72;
+#elif defined VD48N72L
+	if ( GPIO_Read(V48_PORT, V48_PIN) == RESET ){
+		sConfig.uiSysVoltage = 72;
+	} else {
+		sConfig.uiSysVoltage = 60;
+	}
+#elif defined VD48L72N
+	if ( GPIO_Read(V48_PORT, V48_PIN) == RESET ){
+		sConfig.uiSysVoltage = 48;
+	} else {
+		sConfig.uiSysVoltage = 60;
+	}
+#elif defined VD48H72N
+	if ( GPIO_Read(V48_PORT, V48_PIN) == RESET ){
+		sConfig.uiSysVoltage = 60;
+	} else {
+		sConfig.uiSysVoltage = 48;
+	}
+#elif defined VD72L48L
+	if ( GPIO_Read(V72_PORT, V72_PIN) == RESET ){
+		sConfig.uiSysVoltage = 72;
+	} else {
+		if ( GPIO_Read(V48_PORT, V48_PIN) == RESET ){
+			sConfig.uiSysVoltage = 48;
+		} else {
+			sConfig.uiSysVoltage = 60;
+		}
+	}
+#else
+	#error "Please select a system voltage detection method!!!"
+#endif
+
+
+
+
+
+
+
+
+}
+
+
 /*----------------------------------------------------------*/
 
 
@@ -256,10 +333,26 @@ void WriteConfig(void)
 	sConfig.ucBike[1] = 'i';
 	sConfig.ucBike[2] = 'k';
 	sConfig.ucBike[3] = 'e';
+	sConfig.uiVersion = SW_VER;
 	for(sConfig.ucSum=0,i=0;i<sizeof(BIKE_CONFIG)-1;i++)
 		sConfig.ucSum += cbuf[i];
 		
 	FlashWrite(cbuf,sizeof(BIKE_CONFIG));
+}
+void ResetConfig(void)
+{
+	sConfig.uiSysVoltage 	= 60;
+	sConfig.uiVolScale  	= 1000;
+	sConfig.uiTempScale 	= 1000;
+	sConfig.uiSpeedScale	= 1000;
+	sConfig.uiYXT_SpeedScale= 1000;
+#ifdef SINGLE_TRIP
+	sConfig.uiSingleTrip	= 1;
+#else
+	sConfig.uiSingleTrip	= 0;
+#endif
+	sConfig.ulMile			= 0;
+	WriteConfig();
 }
 
 void InitConfig(void)
@@ -276,18 +369,9 @@ void InitConfig(void)
 		sConfig.ucBike[1] != 'i' || 
 		sConfig.ucBike[2] != 'k' || 
 		sConfig.ucBike[3] != 'e' || 
+		//sConfig.uiVersion 	!= SW_VER || 
 		sum != sConfig.ucSum ){
-		sConfig.uiSysVoltage 	= 60;
-		sConfig.uiVolScale  	= 1000;
-		sConfig.uiTempScale 	= 1000;
-		sConfig.uiSpeedScale	= 1000;
-		sConfig.uiYXT_SpeedScale= 1000;
-#ifdef SINGLE_TRIP
-		sConfig.uiSingleTrip	= 1;
-#else
-		sConfig.uiSingleTrip	= 0;
-#endif
-		sConfig.ulMile			= 0;
+		ResetConfig();
 	}
 
 	sBike.ulMile = sConfig.ulMile;
@@ -541,8 +625,9 @@ uint8_t SpeedCaltTask(void)
 	static uint8_t TaskFlag = TASK_INIT;
 	static uint8_t ucLastSpeed = 0;
 	static uint8_t ucCount = 0;
-    static signed char cSpeedInc=0;
+    static signed char scSpeedInc=0;
 	static uint8_t yxterr=0;
+	signed char scSpeed;
 	
     if ( TaskFlag == TASK_EXIT )
       	return 0;
@@ -562,7 +647,7 @@ uint8_t SpeedCaltTask(void)
 			if ( ++ucCount >= 8 ){
 				TaskFlag = TASK_STEP2;
 				ucCount 	= 0;
-				cSpeedInc 	= 0;
+				scSpeedInc 	= 0;
 				sBike.bSpeedFlash = 1;
 				yxterr = sBike.bYXTERR;
 				if ( yxterr )
@@ -575,45 +660,44 @@ uint8_t SpeedCaltTask(void)
 		sBike.bLastNear  = sBike.bNearLight;
 		break;
 	case TASK_STEP2:
-        //if ( sConfig.uiSysVoltage == 48 )
-		//	sBike.ucSpeed = 42;
-        //else if ( sConfig.uiSysVoltage == 60 )
-		//	sBike.ucSpeed = 44;
-        
 		if ( sBike.bLastNear == 0 && sBike.bNearLight == 1 ){
 			uiPreTick = Get_SysTick();
             if ( sBike.bTurnLeft == 1 ) {
 				ucCount = 0;
-				if ( sBike.ucSpeed + cSpeedInc > 1 )
-					cSpeedInc --;
+				if ( sBike.ucSpeed + scSpeedInc > 1 )
+					scSpeedInc --;
 	        } else if ( sBike.bTurnRight == 1 ) {
 				ucCount = 0;
-                if ( sBike.ucSpeed + cSpeedInc < 99 )
-					cSpeedInc ++;
+                if ( sBike.ucSpeed + scSpeedInc < 99 )
+					scSpeedInc ++;
             } else {
 				if ( ++ucCount >= 5 ){
 					TaskFlag = TASK_EXIT;
 					sBike.bSpeedFlash = 0;
 					if ( sBike.ucSpeed ) {
 						if ( yxterr )
-							sConfig.uiSpeedScale 	 = (uint32_t)sBike.ucSpeed*1000UL/(sBike.ucSpeed+cSpeedInc);
+							sConfig.uiSpeedScale 	 = (uint32_t)sBike.ucSpeed*1000UL/(sBike.ucSpeed+scSpeedInc);
 						else
-							sConfig.uiYXT_SpeedScale = (uint32_t)sBike.ucSpeed*1000UL/(sBike.ucSpeed+cSpeedInc);
+							sConfig.uiYXT_SpeedScale = (uint32_t)sBike.ucSpeed*1000UL/(sBike.ucSpeed+scSpeedInc);
 						WriteConfig();
 					}
 				}
 			}
 		}
 		sBike.bLastNear = sBike.bNearLight;
-    
-		if ( ucLastSpeed && sBike.ucSpeed == 0 ){
-			TaskFlag = TASK_EXIT;
-		}
         
 		if ( sBike.ucSpeed )
 			uiPreTick = Get_SysTick();
 
-        sBike.ucSpeed += cSpeedInc;
+		scSpeed = sBike.ucSpeed + scSpeedInc;
+		if ( scSpeed < 0 )
+			sBike.ucSpeed = 0;
+		else
+			sBike.ucSpeed = scSpeed;
+			
+		if ( ucLastSpeed && sBike.ucSpeed == 0 )
+			TaskFlag = TASK_EXIT;
+			
 		ucLastSpeed = sBike.ucSpeed;
 		break;
 	case TASK_EXIT:
@@ -792,6 +876,7 @@ void TimeTask(void)
 #endif 
 /*----------------------------------------------------------*/
 
+
 void Light_Task(void)
 {
 	uint8_t ucSpeedMode;
@@ -821,81 +906,6 @@ void Light_Task(void)
 	}
 }
 
-void GetSysVoltage(void)
-{	
-#if defined BENLING_OUSHANG
-	uint16_t uiVol;
-	for(i=0;i<0xFF;i++){
-		if ( GetVolStabed(&uiVol) && (uiVol > 120) ) break;
-		FEED_DOG();  
-	}
-	if ( 720 <= uiVol && uiVol <= 870 ){
-		if ( sConfig.uiSysVoltage != 72 ){
-			sConfig.uiSysVoltage = 72
-			WriteConfig();
-		}
-	} else if ( 480 <= uiVol && uiVol <= 600 ){
-		if ( sConfig.uiSysVoltage != 60 ){
-			sConfig.uiSysVoltage = 60;
-			WriteConfig();
-		}
-	}
-#elif defined BENLING_BL48_60
-	uint16_t uiVol;
-	for(i=0;i<0xFF;i++){
-		if ( GetVolStabed(&uiVol) && (uiVol > 120) ) break;
-		FEED_DOG();  
-	}
-	if ( 610 <= uiVol && uiVol <= 720 ){
-		if ( sConfig.uiSysVoltage != 60 ){
-			sConfig.uiSysVoltage = 60;
-			WriteConfig();
-		}
-	}	else if ( 360 <= uiVol && uiVol <= 500 ){
-		if ( sConfig.uiSysVoltage != 48 ){
-			sConfig.uiSysVoltage = 48;
-			WriteConfig();
-		}
-	}		
-#elif defined BENLING_ZHONGSHA
-	sConfig.uiSysVoltage = 72;
-#elif (defined OUJUN) || (defined OUPAINONG_6072)
-	//GPIO_Init(V72_PORT, V72_PIN, GPIO_MODE_IN_PU_NO_IT);
-	GPIO_Init(V48_PORT, V48_PIN, GPIO_MODE_IN_PU_NO_IT);
-	if ( GPIO_ReadInputPin(V48_PORT, V48_PIN) == RESET ){
-		sConfig.uiSysVoltage = 72;
-	} else {
-		sConfig.uiSysVoltage = 60;
-	}
-#elif defined OUPAINONG_4860
-	GPIO_Init(V48_PORT, V48_PIN, GPIO_MODE_IN_PU_NO_IT);
-	if ( GPIO_ReadInputPin(V48_PORT, V48_PIN) == RESET ){
-		sConfig.uiSysVoltage = 48;
-	} else {
-		sConfig.uiSysVoltage = 60;
-	}
-#elif defined LCD9040_4860
-	GPIO_Init(V48_PORT, V48_PIN, GPIO_MODE_IN_PU_NO_IT);
-	if ( GPIO_ReadInputPin(V48_PORT, V48_PIN) == RESET ){
-		sConfig.uiSysVoltage = 60;
-	} else {
-		sConfig.uiSysVoltage = 48;
-	}
-#else
-	GPIO_Init(V72_PORT, V72_PIN, GPIO_MODE_IN_PU_NO_IT);
-	GPIO_Init(V48_PORT, V48_PIN, GPIO_MODE_IN_PU_NO_IT);
-	if ( GPIO_ReadInputPin(V72_PORT, V72_PIN) == RESET ){
-		sConfig.uiSysVoltage = 72;
-	} else {
-		if ( GPIO_ReadInputPin(V48_PORT, V48_PIN) == RESET ){
-			sConfig.uiSysVoltage = 48;
-		} else {
-			sConfig.uiSysVoltage = 60;
-		}
-	}
-#endif
-}
-
 void Calibration(void)
 {
 	uint8_t i;
@@ -915,7 +925,7 @@ void Calibration(void)
 	}
 	if ( i == 32 ){
 		for(i=0;i<0xFF;i++){
-			if ( GetVolStabed(&uiVol) && (uiVol > 120) ) break;
+			if ( GetVolStabed(&uiVol) && (uiVol > 500) ) break;
 			FEED_DOG();  
 		}
 		sBike.uiVoltage		= uiVol;
@@ -924,26 +934,10 @@ void Calibration(void)
 
 		sConfig.uiVolScale	= (uint32_t)sBike.uiVoltage*1000UL/VOL_CALIBRATIOIN;		//60.00V
 		//sConfig.TempScale	= (long)sBike.siTemperature*1000UL/TEMP_CALIBRATIOIN;	//25.0C
-		//sConfig.uiSpeedScale = (uint32_t)sBike.ucSpeed*1000UL/SPEED_CALIBRATIOIN;	//30km/h
 		//sConfig.ulMile = 0;
 		WriteConfig();
 	}
 	
-#if ( TIME_ENABLE == 1 )
-	for(i=0;i<32;i++){
-		GPIO_WriteLow (GPIOD,GPIO_PIN_1);
-		Delay(1000);
-		if( GPIO_Read(SPMODE2_PORT	, SPMODE2_PIN) ) break;
-		GPIO_WriteHigh (GPIOD,GPIO_PIN_1);
-		Delay(1000);
-		if( GPIO_Read(SPMODE2_PORT	, SPMODE2_PIN)  == RESET ) break;
-	}
-	if ( i == 32 ){
-		sBike.bUart = 1;
-	} else
-		sBike.bUart = 0;
-#endif
-
 	CFG->GCR &= ~CFG_GCR_SWD;
 }
 
@@ -960,6 +954,12 @@ void main(void)
 	CLK_HSICmd(ENABLE);
 	IWDG_Config();
 
+#ifdef RESET_CONFIG
+	ResetConfig();
+	BL55072_Config(2);
+	MenuUpdate(&sBike);
+	while(1){ FEED_DOG(); }
+#else
 	Init_timer();  
 	HotReset();
 	if ( sBike.bHotReset == 0 ) {
@@ -1057,7 +1057,7 @@ void main(void)
 		#endif
 	#endif
 	}
+#endif	
 }
-
 
 /************************ (C) COPYRIGHT  *****END OF FILE****/
