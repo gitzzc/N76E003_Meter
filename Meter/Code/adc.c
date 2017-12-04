@@ -49,11 +49,13 @@ void READ_BANDGAP()								// Read band-gap actually value after UID two byte.
 			
 void ADC_Init(void)
 {
-	READ_BANDGAP();
 	Enable_ADC_BandGap;				//Find in "Function_define.h" - "ADC INIT"
 	ADC_Bypass();
+	READ_BANDGAP();
 	
 	Enable_ADC_AIN0;
+	Enable_ADC_AIN1;
+	Enable_ADC_AIN2;
 	set_EADC;
 }
 

@@ -1,8 +1,15 @@
+#include "N76E003.h"
+#include "Common.h"
+#include "Delay.h"
+#include "SFR_Macro.h"
+#include "Function_define.h"
 
 #include "bl55072.h"
 #include "bike.h"
 
-
+#define I2C_CLOCK               13
+#define I2C_WRITE               0
+#define I2C_READ	            1
 
 
 //========================================================================================================
@@ -57,8 +64,6 @@ unsigned char I2C_WriteBuf(unsigned char chip,unsigned char* buf, unsigned char 
             I2C_Error();
 			return 0;
 		}
-
-        u8DAT = ~u8DAT;        
     }
 
     /* Step7 */
@@ -83,7 +88,7 @@ unsigned char BL_Write_Data(unsigned char ADSTART,unsigned char LEN, unsigned ch
 	return I2C_WriteBuf(BL_ADDR,reg_buf,LEN+1);	
 }
 
-void BL55072_Config(unsigned char allon)
+void BL55072_Config(unsigned char status)
 {
 	unsigned char BL_Reg[6];
 
@@ -92,11 +97,13 @@ void BL55072_Config(unsigned char allon)
 	BL_Reg[2] = 0xFD;	//DISCTL 50Hz,Line inversion mode,high power mode
 	BL_Reg[3] = 0xEC;	//ICSET InnerOsc
 	BL_Reg[4] = 0xC8;	//MODESET Display on,1/3 bias
-	if ( allon )
-		BL_Reg[5] = 0xFE;	//APCTL Apon
-	else
-		BL_Reg[5] = 0xFC;	//APCTL normal
-	
+	switch(status){
+		case 0:	BL_Reg[5] = 0xFC; break;	//APCTL normal
+		case 1:	BL_Reg[5] = 0xFE; break;	//APCTL Apon
+		case 2:	BL_Reg[5] = 0xFC; BL_Reg[1] = 0xF3; break;	//APCTL normal,1Hz
+		default: break;
+	}
+
 	I2C_WriteBuf(BL_ADDR,BL_Reg,6);
 }
 

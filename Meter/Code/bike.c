@@ -530,7 +530,6 @@ uint8_t MileSetupTask(void)
 		if ( sBike.bTurnRight == 0 && sBike.bTurnLeft == 1 ) {
 			ucCount = 0;
 			TaskFlag = TASK_EXIT;
-			sBike.bMileFlash = 0;
 			sBike.ulFMile 	= 0;
 			sBike.ulMile 	= 0;
 			sConfig.ulMile 	= 0;

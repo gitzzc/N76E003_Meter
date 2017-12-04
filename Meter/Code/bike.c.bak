@@ -22,48 +22,52 @@
 #include "Delay.h"
 
 #include "adc.h"
+#include "flash.h"
 
 #include "bl55072.h"
 #include "display.h"
 #include "bike.h"
 #include "YXT.h"
 
+
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 #ifdef JINPENG_4860
-const uint16_t uiBatStatus48[8] = {420,426,432,439,445,451,457,464};
-const uint16_t uiBatStatus60[8] = {520,528,536,542,550,558,566,574};
-const uint16_t uiBatStatus72[8] = {0};
+const uint16_t code uiBatStatus48[8] = {420,426,432,439,445,451,457,464};
+const uint16_t code uiBatStatus60[8] = {520,528,536,542,550,558,566,574};
+const uint16_t code uiBatStatus72[8] = {0};
 #elif defined JINPENG_6072
-const uint16_t uiBatStatus48[8] = {0};
-const uint16_t uiBatStatus60[8] = {480,493,506,519,532,545,558,570};
-const uint16_t uiBatStatus72[8] = {550,569,589,608,628,647,667,686};
+const uint16_t code uiBatStatus48[8] = {0};
+const uint16_t code uiBatStatus60[8] = {480,493,506,519,532,545,558,570};
+const uint16_t code uiBatStatus72[8] = {550,569,589,608,628,647,667,686};
 #elif defined LCD6040
-const uint16_t uiBatStatus48[] = {425,432,444,456,468};
-const uint16_t uiBatStatus60[] = {525,537,553,566,578};
-const uint16_t uiBatStatus72[] = {630,641,661,681,701};
+const uint16_t code uiBatStatus48[] = {425,432,444,456,468};
+const uint16_t code uiBatStatus60[] = {525,537,553,566,578};
+const uint16_t code uiBatStatus72[] = {630,641,661,681,701};
 #else
-const uint16_t uiBatStatus48[8] = {420,427,435,444,453,462,471,481};
-const uint16_t uiBatStatus60[8] = {520,531,544,556,568,577,587,595};
-const uint16_t uiBatStatus72[8] = {630,642,653,664,675,687,700,715};
+const uint16_t code uiBatStatus48[8] = {420,427,435,444,453,462,471,481};
+const uint16_t code uiBatStatus60[8] = {520,531,544,556,568,577,587,595};
+const uint16_t code uiBatStatus72[8] = {630,642,653,664,675,687,700,715};
 #endif
 
-BIKE_STATUS sBike;
-BIKE_CONFIG sConfig;
+BIKE_STATUS xdata sBike;
+BIKE_CONFIG xdata sConfig;
 volatile uint16_t  uiSysTick = 0;
-uint16_t uiSpeedBuf[16];
-uint16_t uiVolBuf[28];
-uint16_t uiTempBuf[4];
+uint16_t xdata uiSpeedBuf[16];
+uint16_t xdata uiVolBuf[28];
+uint16_t xdata uiTempBuf[4];
 
 #if ( TIME_ENABLE == 1 )
-uint8_t ucUart1Buf[16];
-uint8_t ucUart1Index=0;
+uint8_t xdataucUart1Buf[16];
+uint8_t xdata ucUart1Index=0;
 #endif
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 /* Public functions ----------------------------------------------------------*/
+uint8_t GPIO_Read(uint8_t port, uint8_t pin);
+void GetSysVoltage(void);
 
 /*----------------------------------------------------------*/
 
@@ -181,6 +185,7 @@ uint8_t GetSpeed(void)
 
 void GetSysVoltage(void)
 {	
+	
 #if defined BENLING_OUSHANG
 	uint16_t uiVol;
 	for(i=0;i<0xFF;i++){
@@ -433,31 +438,31 @@ uint8_t GetBatEnergy(uint16_t uiVol)
 
 void LRFlashTask(void)
 {
-	static uint8_t ucLeftOn=0	,ucLeftOff=0;
-	static uint8_t ucRightOn=0	,ucRightOff=0;
-	static uint8_t ucLeftCount=0,ucRightCount=0;
+	static uint8_t ucLeftOn=0	,ucLeftOff=0;	//开启计时器
+	static uint8_t ucRightOn=0	,ucRightOff=0;	//关闭计时器
+	static uint8_t ucLeftCount=0,ucRightCount=0;//开启时间计时器
 
 	if ( READ_TURN_LEFT() ){	//ON
         ucLeftOff = 0;
         if ( ucLeftOn ++ > 10 ){		//200ms 滤波
             if ( ucLeftOn > 100 ){
           	    ucLeftOn = 101;
-                sBike.bLFlashType = 0;
+                sBike.bLFlashType = 0;	//长时间开启，为开关信号
             }
            	if ( ucLeftCount < 0xFF-50 ){
 	            ucLeftCount++;
             }
-			sBike.bLeftFlash= 1;
-			sBike.bTurnLeft = 1;
+			sBike.bLeftFlash= 1;		//闪光信号
+			sBike.bTurnLeft = 1;		//转向信号
         }
 	} else {					//OFF
         ucLeftOn = 0;
         if ( ucLeftOff ++ == 10 ){
-        	ucLeftCount += 50;	//500ms
+        	ucLeftCount += 25;			//在开启时间上加500ms
 			sBike.bLeftFlash = 0;
         } else if ( ucLeftOff > 10 ){
 	        ucLeftOff = 11;
-            sBike.bLFlashType = 1;
+            sBike.bLFlashType = 1;		//闪光器信号
             if ( ucLeftCount == 0 ){
 				sBike.bTurnLeft = 0;
             } else
@@ -481,7 +486,7 @@ void LRFlashTask(void)
 	} else {					//OFF
         ucRightOn = 0;
         if ( ucRightOff ++ == 10 ){
-        	ucRightCount += 50;	//500ms
+        	ucRightCount += 25;	//500ms
 			sBike.bRightFlash = 0;
         } else if ( ucRightOff > 10 ){
 	        ucRightOff = 11;
@@ -494,18 +499,12 @@ void LRFlashTask(void)
 	}
 }
 
-uint8_t MileResetTask(void)
+uint8_t MileSetupTask(void)
 {
 	static uint16_t uiPreTick=0;
 	static uint8_t TaskFlag = TASK_INIT;
 	static uint8_t ucCount = 0;
-	uint8_t ret=0;
-	
-    if ( TaskFlag == TASK_EXIT )
-        return 0;
-    
-	if ( Get_ElapseTick(uiPreTick) > 10000 | sBike.bBraked | sBike.ucSpeed )
-		TaskFlag = TASK_EXIT;
+	uint8_t ret = 0;
 
 	switch( TaskFlag ){
 	case TASK_INIT:
@@ -543,10 +542,10 @@ uint8_t MileResetTask(void)
 					TaskFlag = TASK_STEP3;
 					if ( sConfig.uiSingleTrip ){
 						sConfig.uiSingleTrip = 0;
-						sBike.ulMile = 99999UL;
+						sBike.ulMile = 22222UL;
 					} else {
 						sConfig.uiSingleTrip = 1;
-						sBike.ulMile = 0;
+						sBike.ulMile = 11111UL;
 					}
 					WriteConfig();
 				}
@@ -562,51 +561,63 @@ uint8_t MileResetTask(void)
 				sBike.ulMile = 0;
 			else
 				sBike.ulMile = sConfig.ulMile;
-			sBike.bMileFlash = 0;
 		}
 		ret = 1;
 		break;
 	case TASK_EXIT:
 	default:
-		sBike.bMileFlash = 0;
-		ret = 0;
+			sBike.bMileFlash = 0;
 		break;
 	}
+
+	if ( Get_ElapseTick(uiPreTick) > 10000/* || sBike.bBraked || sBike.ucSpeed*/ )
+		TaskFlag = TASK_EXIT;
 	
 	return ret;
 }
 
 void MileTask(void)
 {
-	static uint16_t uiTime = 0;
-	uint8_t uiSpeed;
-	
-	if ( MileResetTask() )
-		return ;
-	
-	uiSpeed = sBike.ucSpeed;
-	if ( uiSpeed > DISPLAY_MAX_SPEED )
-		uiSpeed = DISPLAY_MAX_SPEED;
+#define MT_INIT					0
+#define MT_SHOW_TOTAL_MILE_2S	1
+#define MT_WAIT_SPEED			2
+#define MT_SHOW_MILE			3
 
-//#ifdef SINGLE_TRIP
+	static uint16_t uiTime = 0;
+	static uint8_t task=MT_INIT;
+	
+	if ( MileSetupTask() ){
+		task	= MT_INIT;
+		return ;
+	}
+
 	uiTime ++;
-	if ( uiTime < 20 ) {	//2s
+	switch( task ){
+	case MT_INIT:
 		if ( sConfig.uiSingleTrip == 0 )
-			uiTime = 51;
-		sBike.ulMile = sConfig.ulMile;
-	} else if ( uiTime < 50 ) { 	//5s
-		if ( uiSpeed ) {
-			uiTime = 50;
+			task = MT_SHOW_MILE;
+		else
+			task = MT_SHOW_TOTAL_MILE_2S;
+		sBike.ulMile  = sConfig.ulMile;
+		sBike.ulFMile = 0;
+		uiTime 	= 0;
+		break;
+	case MT_SHOW_TOTAL_MILE_2S:
+		if ( uiTime > 20 )	//2s
+			task = MT_WAIT_SPEED;
+		break;
+	case MT_WAIT_SPEED:
+		if ( uiTime > 50 || sBike.ucSpeed > 0 ){
+			task = MT_SHOW_MILE;
 			sBike.ulMile = 0;
 		}
-	} else if ( uiTime == 50 ){
-		sBike.ulMile = 0;
-	} else 
-//#endif	
-	{
-		uiTime = 51;
+		break;	
+	case MT_SHOW_MILE:
+		if ( sBike.ucSpeed > DISPLAY_MAX_SPEED )
+			sBike.ulFMile += DISPLAY_MAX_SPEED;
+		else
+			sBike.ulFMile += sBike.ucSpeed;
 		
-		sBike.ulFMile = sBike.ulFMile + uiSpeed;
 		if(sBike.ulFMile >= 36000)
 		{
 			sBike.ulFMile = 0;
@@ -616,7 +627,15 @@ void MileTask(void)
 			if ( sConfig.ulMile > 99999 )	sConfig.ulMile = 0;
 			WriteConfig();
 		}  
+		break;
+	default:
+		task = MT_INIT;
+		break;
 	}
+#undef MT_INIT
+#undef MT_SHOW_TOTAL_MILE_2S
+#undef MT_WAIT_SPEED
+#undef MT_SHOW_MILE	
 }
 
 uint8_t SpeedCaltTask(void)
@@ -629,12 +648,6 @@ uint8_t SpeedCaltTask(void)
 	static uint8_t yxterr=0;
 	signed char scSpeed;
 	
-    if ( TaskFlag == TASK_EXIT )
-      	return 0;
-    
-	if ( Get_ElapseTick(uiPreTick) > 10000 || sBike.bBraked )
-		TaskFlag = TASK_EXIT;
-
 	switch( TaskFlag ){
 	case TASK_INIT:
 		if ( Get_SysTick() < 3000 && sBike.bTurnLeft == 1 ){
@@ -671,7 +684,7 @@ uint8_t SpeedCaltTask(void)
                 if ( sBike.ucSpeed + scSpeedInc < 99 )
 					scSpeedInc ++;
             } else {
-				if ( ++ucCount >= 5 ){
+				if ( ++ucCount >= 4 ){
 					TaskFlag = TASK_EXIT;
 					sBike.bSpeedFlash = 0;
 					if ( sBike.ucSpeed ) {
@@ -705,6 +718,9 @@ uint8_t SpeedCaltTask(void)
 		sBike.bSpeedFlash = 0;
 		break;
 	}
+	if ( Get_ElapseTick(uiPreTick) > 10000 || sBike.bBraked )
+		TaskFlag = TASK_EXIT;
+
 	return 0;
 }
 
@@ -906,41 +922,7 @@ void Light_Task(void)
 	}
 }
 
-void Calibration(void)
-{
-	uint8_t i;
-	uint16_t uiVol;
-	
-	CFG->GCR = CFG_GCR_SWD;
-	//短接低速、SWIM信号
-	GPIO_Init(GPIOD, GPIO_PIN_1, GPIO_MODE_OUT_OD_HIZ_SLOW);
-
-	for(i=0;i<32;i++){
-		GPIO_WriteLow (GPIOD,GPIO_PIN_1);
-		Delay(1000);
-		if( GPIO_Read(SPMODE1_PORT	, SPMODE1_PIN) ) break;
-		GPIO_WriteHigh (GPIOD,GPIO_PIN_1);
-		Delay(1000);
-		if( GPIO_Read(SPMODE1_PORT	, SPMODE1_PIN)  == RESET ) break;
-	}
-	if ( i == 32 ){
-		for(i=0;i<0xFF;i++){
-			if ( GetVolStabed(&uiVol) && (uiVol > 500) ) break;
-			FEED_DOG();  
-		}
-		sBike.uiVoltage		= uiVol;
-		//sBike.siTemperature= GetTemp();
-		//sBike.ucSpeed		= GetSpeed();
-
-		sConfig.uiVolScale	= (uint32_t)sBike.uiVoltage*1000UL/VOL_CALIBRATIOIN;		//60.00V
-		//sConfig.TempScale	= (long)sBike.siTemperature*1000UL/TEMP_CALIBRATIOIN;	//25.0C
-		//sConfig.ulMile = 0;
-		WriteConfig();
-	}
-	
-	CFG->GCR &= ~CFG_GCR_SWD;
-}
-
+#if 0
 void main(void)
 {
 	uint8_t i;
@@ -1059,5 +1041,6 @@ void main(void)
 	}
 #endif	
 }
+#endif
 
 /************************ (C) COPYRIGHT  *****END OF FILE****/

@@ -49,11 +49,18 @@ void MenuUpdate(BIKE_STATUS* bike)
 	
 	if( bike->bHallERR 	) BL_Data[0x0B] |= 0x80;	//S2	电机霍尔故障
 	if( bike->bWheelERR ) BL_Data[0x0B] |= 0x40;	//S3	手把故障
-	if( bike->bECUERR 	) BL_Data[0x0F] |= 0x01;	//S7 	电机控制器故障
+	if( bike->bECUERR 	) BL_Data[0x0F] |= 0x01;	//S10 	电机控制器故障
 //	if( bike->bPhaseERR ) BL_Data[0x0F] |= 0x02;	//S11	电机缺相故障
-//	if( bike->bBraked  	) BL_Data[0x0F] |= 0x02;	//S11	电机缺相故障
-	if( bike->bYXTECO	) BL_Data[0x0E] |= 0x80;	//S6	ECO
-	if( bike->bYXTRCHG	) BL_Data[0x0F] |= 0x80;	//S7	R
+	if( bike->bBraked  	) BL_Data[0x0F] |= 0x02;	//S11	刹车
+	if( bike->bECO		) BL_Data[0x0E] |= 0x80;	//S6	ECO
+	if( bike->bRCHG		) BL_Data[0x0F] |= 0x80;	//S7	R
+	if( bike->bParking	) {
+		GPIO_Init(POut_PORT, POut_PIN, GPIO_MODE_OUT_PP_LOW_SLOW);
+		GPIO_WriteLow (POut_PORT,POut_PIN);
+	} else {
+		GPIO_Init(POut_PORT, POut_PIN, GPIO_MODE_OUT_PP_LOW_SLOW);
+		GPIO_WriteHigh (POut_PORT,POut_PIN);
+	}
 
 	/***************************Battery Area Display**********************************/
 	BL_Data[0x06] |=  0x80; //T

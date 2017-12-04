@@ -2,6 +2,9 @@
 ".\Output\adc.obj",
 ".\Output\bike.obj",
 ".\Output\Flash.obj",
+".\Output\display.obj",
+".\Output\bl55072.obj",
+".\Output\yxt.obj",
 ".\Output\Common.obj",
 ".\Output\Delay.obj",
 ".\Output\STARTUP.obj" 

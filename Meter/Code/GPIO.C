@@ -44,40 +44,45 @@ static void WDG_Config(void)
 
 void GPIO_Init(uint8_t port, uint8_t pin, uint8_t mode)
 {
+	if ( pin > 7 ) return;
 	switch ( mode ){
-		case GPIO_QUASI:
-			switch(port){
-				case 0x80:	P0M1&=~(1<<pin);P0M2&=~(1<<pin);break;
-				case 0x90:	P1M1&=~(1<<pin);P1M2&=~(1<<pin);break;
-				case 0xB0:	P3M1&=~(1<<pin);P3M2&=~(1<<pin);break;
-				default:	break;
-			}
-			break;
-		case GPIO_PUSH_PULL:
-			switch(port){
-				case 0x80:	P0M1&=~(1<<pin);P0M2|=(1<<pin);break;
-				case 0x90:	P1M1&=~(1<<pin);P1M2|=(1<<pin);break;
-				case 0xB0:	P3M1&=~(1<<pin);P3M2|=(1<<pin);break;
-				default:	break;
-			}
-			break;
-		case GPIO_INPUT_ONLY:
-			switch(port){
-				case 0x80:	P0M1|=(1<<pin);P0M2&=~(1<<pin);break;
-				case 0x90:	P1M1|=(1<<pin);P1M2&=~(1<<pin);break;
-				case 0xB0:	P3M1|=(1<<pin);P3M2&=~(1<<pin);break;
-				default:	break;
-			}
-			break;
-		case GPIO_OPEN_DRAIN:
-			switch(port){
-				case 0x80:	P0M1|=(1<<pin);P0M2|=(1<<pin);break;
-				case 0x90:	P1M1|=(1<<pin);P1M2|=(1<<pin);break;
-				case 0xB0:	P3M1|=(1<<pin);P3M2|=(1<<pin);break;
-				default:	break;
-			}
-			break;
-		default : break;
+	case GPIO_QUASI:
+		switch(port){
+			case 0x80:	P0M1&=~(1<<pin);P0M2&=~(1<<pin);break;
+			case 0x90:	P1M1&=~(1<<pin);P1M2&=~(1<<pin);break;
+			case 0xB0:	if (pin == 0) 
+						P3M1&=~(0x01);	P3M2&=~(0x01);break;
+			default:	break;
+		}
+		break;
+	case GPIO_PUSH_PULL:
+		switch(port){
+			case 0x80:	P0M1&=~(1<<pin);P0M2|=(1<<pin);break;
+			case 0x90:	P1M1&=~(1<<pin);P1M2|=(1<<pin);break;
+			case 0xB0:	if (pin == 0) 
+						P3M1&=~(0x01);	P3M2|=(0x01);break;
+			default:	break;
+		}
+		break;
+	case GPIO_INPUT_ONLY:
+		switch(port){
+			case 0x80:	P0M1|=(1<<pin);P0M2&=~(1<<pin);break;
+			case 0x90:	P1M1|=(1<<pin);P1M2&=~(1<<pin);break;
+			case 0xB0:	if (pin == 0) 
+						P3M1|=(0x01);	P3M2&=~(0x01);break;
+			default:	break;
+		}
+		break;
+	case GPIO_OPEN_DRAIN:
+		switch(port){
+			case 0x80:	P0M1|=(1<<pin);P0M2|=(1<<pin);break;
+			case 0x90:	P1M1|=(1<<pin);P1M2|=(1<<pin);break;
+			case 0xB0:	if (pin == 0) 
+						P3M1|=(0x01);	P3M2|=(0x01);break;
+			default:	break;
+		}
+		break;
+	default : break;
 	}	
 }
 
@@ -86,8 +91,6 @@ uint8_t GPIO_Read(uint8_t port, uint8_t pin)
 	GPIO_Init(port,pin,GPIO_INPUT_ONLY);
 	return (port>>pin)&0x01;
 }
-
-
 
 #if ( TIME_ENABLE == 1 )
 void InitUART(void)
@@ -262,7 +265,7 @@ void main(void)
 #endif
 
 #if ( YXT_ENABLE == 1 )
-	//YXT_Init();  
+	YXT_Init();  
 #endif
   
 	ENABLE_INTERRUPTS();
@@ -302,7 +305,7 @@ void main(void)
 			MileTask(); 
 			
 		#if ( YXT_ENABLE == 1 )
-			//YXT_Task(&sBike,&sConfig);  
+			YXT_Task(&sBike,&sConfig);  
 		#endif
 		
 			SpeedCaltTask();

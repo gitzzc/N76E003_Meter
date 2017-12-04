@@ -11,30 +11,38 @@
   * 改正左右转信号检测问题，MileResetTask问题，修改程序结构；
   * 
   * V2.22 - 20171120
-  * 增加对9040基本版本2.0PCB的支持、JIKE13050版本的支持
+  * 增加对9040基本版本2.0PCB的支持、JIKE13050版本的支持
+
   * 增加相关设计文档
   * 
   * V2.21 - 20171102
   * 增加参数设置单次里程功能，可以通过开关操作进行设置；
   * 
   * V2.20 - 20171027
-  * 统一清里程、速度设定的方法；兼容左右灯开关信号和闪光器信号；统一变量命名方式；
+  * 统一清里程、速度设定的方法；兼容左右灯开关信号和闪光器信号；统一变量命名方式；
+
   * 
   * V2.13 - 20170921
-  * 改正左右转闪光器信号的识别，MileResetTask,YXT_SpeedCaltTask两个功能可以更稳定工作
+  * 改正左右转闪光器信号的识别，MileResetTask,YXT_SpeedCaltTask两个功能可以更稳定工作
+
   * 
   * V2.12 - 20170916
   * 按9040_5535型仪表软件设置要求-0914.docx进行更改
-  * 增加MileResetTask,YXT_SpeedCaltTask两个功能．
-  * 增加相电压速度时的调节功能，改下一线通电压时初始化的问题．
+  * 增加MileResetTask,YXT_SpeedCaltTask两个功能．
+
+  * 增加相电压速度时的调节功能，改下一线通电压时初始化的问题．
+
   * 
   * V2.11 - 20170909
-  * 按9040_5535型仪表软件设置要求-0908.doc进行更改：
-  * 1.	60/72V系统，电池图标对应电压值
+  * 按9040_5535型仪表软件设置要求-0908.doc进行更改：
+
+  * 1.	60/72V系统，电池图标对应电压值
+
   * 2.	无挡位输入时，相电压对应速度
   * 3.	计算累积里程时，设定的最高速度
   * 增加LCD9040_4860版本
-  * 修改左右转灯为独立闪烁
+  * 修改左右转灯为独立闪烁
+
   * 修改工程结构
   * 修正最高速度限制
   * 更改ＧetVol函数和程序结构使用电源快速开关过程中，仪表显示不变．
@@ -47,9 +55,12 @@
   * 改正OUPAINONG_6072版本的电压识别；
   *
   * V2.09 - 20170821
-  * 增加了开机3秒内开关8次大灯对总里程进行复位的方法；
-  * 左右转信号由中断改为程序扫描方式；
-  * 增加批量编译功能；
+  * 增加了开机3秒内开关8次大灯对总里程进行复位的方法；
+
+  * 左右转信号由中断改为程序扫描方式；
+
+  * 增加批量编译功能；
+
   *
   * V2.08 - 20170817
   * 修改刹车图标显示方式，当YXT DATA2 BIT5 为1时显示刹车灯
@@ -57,7 +68,8 @@
   * 优化程序空间
   *
   * V2.07
-  * 增加开机显示累计里程5秒，如果2秒后有速度则跳到显示单次里程
+  * 增加开机显示累计里程5秒，如果2秒后有速度则跳到显示单次里程
+
   * 修正对一线通吉详方案的支持，数据高电平占空比放宽到15-42
   *
   * V2.06
@@ -73,21 +85,31 @@
   * 删除对老PCB版本的支持，
   *
   * V2.01
-  * 一线通改为多协议同时支持；
-  * 速度分档修正；
+  * 一线通改为多协议同时支持；
+
+  * 速度分档修正；
+
   *
   * V2.00
-	* 功能：
+	* 功能：
+
 	* 1.系统电压通过MODE1,MODE2自动检测；
-	* 2.时钟功能自动检测，无芯片不显示；
-	* 3.通过左右转向进行时间调整模式；
-	* 4.通过串口可进行参数标定,	短接低速、SWIM信号进行参数标定；
+	* 2.时钟功能自动检测，无芯片不显示；
+
+	* 3.通过左右转向进行时间调整模式；
+
+	* 4.通过串口可进行参数标定,	短接低速、SWIM信号进行参数标定；
+
 	* 5.参数保存于EEPROM;
 	* 6.一线通功能；
-	* 7.档位信息优先读取一线通数据，实现四档信息判断，一线通中断后采用档把数据；
-	* 8.开启开门狗功能；
-	* 9.通过PCB_VER定义不同的硬件版本，支持0011、0012、0022、0041；
-	*10.通过YXT_XX定义不同的控制器版本；
+	* 7.档位信息优先读取一线通数据，实现四档信息判断，一线通中断后采用档把数据；
+
+	* 8.开启开门狗功能；
+
+	* 9.通过PCB_VER定义不同的硬件版本，支持0011、0012、0022、0041；
+
+	*10.通过YXT_XX定义不同的控制器版本；
+
   *
   ******************************************************************************
   */
@@ -125,38 +147,18 @@
 
 //#define SINGLE_TRIP	
 //#define LCD_SEG_TEST
+//#define RESET_CONFIG
 
-// uiSpeed*5V*21/1024/fullV*fullSpeed
-#define SPEED_CALC_48V(uiSpeed) uiSpeed*1925UL/8192UL	/*24V->55KM/H*/
-#define SPEED_CALC_60V(uiSpeed) uiSpeed*1925UL/8192UL	/*30V->55KM/H*/
-#define SPEED_CALC_72V(uiSpeed) uiSpeed*1925UL/8192UL	/*36V->55KM/H*/
+#define VOL_CALIBRATIOIN	600UL	//60.0V
+#define TEMP_CALIBRATIOIN	250UL	//25.0C
 
-#ifdef JINPENG_4860
-	#define PCB_VER		0100
-	#define LCD9040
-	#define TIME_ENABLE 0
-	#define YXT_ENABLE  1				
-	#define RESET_MILE_ENABLE
+#define PON_ALLON_TIME		2000UL	//1000ms
 
-	// uiSpeed*5V*21/1024/fullV*fullSpeed
-	#undef	SPEED_CALC_48V
-	#undef	SPEED_CALC_60V
-	#define SPEED_CALC_48V(uiSpeed) uiSpeed*1505UL/8192UL	/*24V->43KM/H*/
-	#define SPEED_CALC_60V(uiSpeed) uiSpeed*301UL /2048UL	/*30V->43KM/H*/
-#elif defined JINPENG_6072
+#define DISPLAY_MAX_SPEED	45UL	//40km/h
+/******************************************************************************/
+
+#if defined LCD9040
 	#define PCB_VER		0100
-	#define LCD9040
-	#define TIME_ENABLE 0
-	#define YXT_ENABLE  1				
-	#define RESET_MILE_ENABLE
-	// uiSpeed*5V*21/1024/fullV*fullSpeed
-	#undef	SPEED_CALC_60V
-	#undef	SPEED_CALC_72V
-	#define SPEED_CALC_60V(uiSpeed) uiSpeed*1505UL/8192UL	/*24V->43KM/H*/
-	#define SPEED_CALC_72V(uiSpeed) uiSpeed*1505UL/12288UL	/*36V->43KM/H*/
-#elif defined LCD9040
-	#define PCB_VER		0100
-	//#define PCB_VER		0100
 	//#define LCD9040
 	#define TIME_ENABLE 0
 	#define YXT_ENABLE  1				
@@ -336,16 +338,6 @@
 #define TASK_EXIT	0xFF
 
 /******************************************************************************/
-#define VOL_CALIBRATIOIN	600UL	//60.0V
-#define TEMP_CALIBRATIOIN	250UL	//25.0C
-#define SPEED_CALIBRATIOIN	30UL	//30km/h
-
-#define PON_ALLON_TIME		2000UL	//1000ms
-
-#define DISPLAY_MAX_SPEED	45UL	//40km/h
-#define SPEEDMODE_DEFAULT	1		//1档
-
-
 #define uint8_t 	unsigned char
 #define uint16_t 	unsigned int
 #define uint32_t 	unsigned long
@@ -567,8 +559,8 @@ extern volatile uint16_t uiSysTick;
 #define READ_TURN_RIGHT()	GPIO_Read(TurnRight_PORT, TurnRight_PIN )
 #define FEED_DOG()			
 
-#define 	DISABLE_INTERRUPTS()	EA = 0
-#define 	ENABLE_INTERRUPTS()		EA = 1
+#define DISABLE_INTERRUPTS()	EA = 0
+#define ENABLE_INTERRUPTS()		EA = 1
 
 #define RESET	0
 #define SET		1

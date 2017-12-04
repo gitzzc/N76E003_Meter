@@ -1,10 +1,10 @@
-C51 COMPILER V9.50a   FLASH                                                                12/03/2017 23:49:50 PAGE 1   
+C51 COMPILER V9.50a   FLASH                                                                12/04/2017 14:02:11 PAGE 1   
 
 
 C51 COMPILER V9.50a, COMPILATION OF MODULE FLASH
 OBJECT MODULE PLACED IN .\Output\Flash.obj
-COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE Code\Flash.c LARGE BROWSE INCDIR(..\Include) DEFINE(FOSC_160000) DEBUG OBJE
-                    -CTEXTEND PRINT(.\LST\Flash.lst) OBJECT(.\Output\Flash.obj)
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE Code\Flash.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Include) DEFINE(FO
+                    -SC_160000) DEBUG OBJECTEXTEND PRINT(.\LST\Flash.lst) OBJECT(.\Output\Flash.obj)
 
 line level    source
 
@@ -62,7 +62,7 @@ line level    source
   42          #define     DATA_START_ADDR     0x3700                                  
   43          //--------------------------------------------------------------------------------------------------------
              ----/
-C51 COMPILER V9.50a   FLASH                                                                12/03/2017 23:49:50 PAGE 2   
+C51 COMPILER V9.50a   FLASH                                                                12/04/2017 14:02:11 PAGE 2   
 
   44          
   45          volatile unsigned char code Data_Flash[DATA_SIZE] _at_ DATA_START_ADDR;
@@ -126,7 +126,7 @@ line level    source
   98   1          clr_IAPEN;
   99   1      }
  100          //--------------------------------------------------------------------------------------------------------
-C51 COMPILER V9.50a   FLASH                                                                12/03/2017 23:49:50 PAGE 3   
+C51 COMPILER V9.50a   FLASH                                                                12/04/2017 14:02:11 PAGE 3   
 
              ----
  101          UINT8 Erase_APROM_Verify(void)
@@ -190,7 +190,7 @@ line level    source
  157   1              return 1;
  158   1      }
  159          //--------------------------------------------------------------------------------------------------------
-C51 COMPILER V9.50a   FLASH                                                                12/03/2017 23:49:50 PAGE 4   
+C51 COMPILER V9.50a   FLASH                                                                12/04/2017 14:02:11 PAGE 4   
 
              ----
  160          UINT8 FlashWrite(UINT8* cfg,UINT16 len)
@@ -254,7 +254,7 @@ line level    source
                   while(1);
               }
               #endif
-C51 COMPILER V9.50a   FLASH                                                                12/03/2017 23:49:50 PAGE 5   
+C51 COMPILER V9.50a   FLASH                                                                12/04/2017 14:02:11 PAGE 5   
 
  220          //--------------------------------------------------------------------------------------------------------
              ----

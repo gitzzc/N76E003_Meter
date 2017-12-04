@@ -1,3 +1,9 @@
+#include "N76E003.h"
+#include "SFR_Macro.h"
+#include "Function_define.h"
+#include "Common.h"
+#include "Delay.h"
+
 #include "yxt.h"
 
 
@@ -7,20 +13,35 @@ unsigned char YXT_RxBit,YXT_RxData;
 unsigned char YXT_Update=0;
 
 
+/************************************************************************************************************
+*    Timer2 Capture interrupt subroutine
+************************************************************************************************************/
+void Capture_ISR (void) interrupt 12
+{
+	unsigned char cl,ch;
+	static uint16_t high,low;
+	
+	clr_CAPF0;			// clear capture0 interrupt flag
+	cl = C0L;			// For capture mode CxL/CxH with data capture from I/O pin
+	ch = C0H;											
+	clr_TF2;
+	
+	if ( P12 == 1 ){
+		low = ((uint16_t)ch<<8)|cl;
+	} else {
+		high = ((uint16_t)ch<<8)|cl;
+		YXT_Tim_Receive(low*100/(low+high));
+	}
+}
+
 void YXT_Init(void)
 {
-	CLK_PeripheralClockConfig(CLK_PERIPHERAL_TIMER1, ENABLE);
+	TIMER2_DIV_32;
+	TIMER2_CAP0_Capture_Mode;
+	IC0_P12_CAP0_BothEdge_Capture;
 
-	//TIM1_DeInit();
-	TIM1_TimeBaseInit(31,TIM1_COUNTERMODE_UP,0xFFFF,0);
-	TIM1_PWMIConfig(TIM1_CHANNEL_1,TIM1_ICPOLARITY_FALLING,TIM1_ICSELECTION_DIRECTTI,TIM1_ICPSC_DIV1,0x0F);
-	TIM1_SelectSlaveMode(TIM1_SLAVEMODE_RESET);
-	TIM1_SelectInputTrigger(TIM1_TS_TI1FP1);
-	TIM1_ClearFlag(TIM1_FLAG_UPDATE | TIM1_FLAG_CC2);
-	TIM1_ITConfig(TIM1_IT_CC2,ENABLE);
-	TIM1_Cmd(ENABLE);
-
-	GPIO_Init(GPIOC, GPIO_PIN_6, GPIO_MODE_IN_FL_NO_IT);	//YXT
+	set_ECAP;                                   //Enable Capture interrupt
+	set_TR2;                                    //Triger Timer2
 	
 	YXT_Update = 0;
 }
@@ -116,7 +137,7 @@ void YXT_Task(BIKE_STATUS *bike,BIKE_CONFIG* config)
 		bike->bYXTERR = 0;
 
 #ifdef JIKE13050	
-		if ( (YXT_Status[1] & (1<<7)) )	bike->bYXTECO  = 1; else bike->bYXTECO  = 0;
+		if ( (YXT_Status[1] & (1<<7)) )	bike->bECO     = 1; else bike->bECO     = 0;
 #endif
 		if ( (YXT_Status[1] & (1<<6)) )	bike->bHallERR = 1; else bike->bHallERR = 0;
 		if ( (YXT_Status[1] & (1<<5)) ) bike->bWheelERR= 1; else bike->bWheelERR= 0; 
@@ -126,14 +147,16 @@ void YXT_Task(BIKE_STATUS *bike,BIKE_CONFIG* config)
 
 		if ( (YXT_Status[2] & (1<<5)) )	bike->bBraked  = 1; else bike->bBraked  = 0;
 #ifdef JIKE13050	
-		if ( (YXT_Status[2] & (1<<3)) )	bike->bYXTRCHG = 1; else bike->bYXTRCHG = 0;
+		if ( (YXT_Status[2] & (1<<3)) )	bike->bRCHG    = 1; else bike->bRCHG    = 0;
+		if ( (YXT_Status[2] & (1<<6)) )	bike->bParking = 0; else bike->bParking = 1;
+		
 #endif
 	
 		bike->ucSpeedMode = ((YXT_Status[2]>>5)&0x04)|(YXT_Status[2]&0x03);
 		speed = ((unsigned int )YXT_Status[5]<<8) | YXT_Status[6];
 		speed = speed*5/60;	//600->50Km/h
 		bike->ucYXT_Speed 	= speed;
-		bike->ucSpeed 		= speed*1000UL/config->uiYXT_SpeedScale;
+		bike->ucSpeed 		= bike->ucYXT_Speed*1000UL/config->uiYXT_SpeedScale;
 
 		YXT_Update = 0;  
 	} else if ( Get_ElapseTick(pre_tick) > 3000 ){
@@ -143,5 +166,9 @@ void YXT_Task(BIKE_STATUS *bike,BIKE_CONFIG* config)
 		bike->bWheelERR = 0;
 		bike->bECUERR 	= 0;
 	}	
+    
+	if ( bike->bYXTERR 	== 0 ){
+		bike->ucSpeed 	= bike->ucYXT_Speed*1000UL/config->uiYXT_SpeedScale;
+    }
 }
 

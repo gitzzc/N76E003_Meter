@@ -1,0 +1,181 @@
+C51 COMPILER V9.50a   DISPLAY_9040                                                         12/04/2017 10:55:21 PAGE 1   
+
+
+C51 COMPILER V9.50a, COMPILATION OF MODULE DISPLAY_9040
+OBJECT MODULE PLACED IN .\Output\display_9040.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE Code\display_9040.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Include) DE
+                    -FINE(FOSC_160000) DEBUG OBJECTEXTEND PRINT(.\LST\display_9040.lst) OBJECT(.\Output\display_9040.obj)
+
+line level    source
+
+   1          #include "stdlib.h"
+   2          #include "bike.h"
+   3          #include "bl55072.h"
+   4          
+   5          unsigned char BL_Data[19];
+   6          unsigned char flashflag = 0;
+   7          
+   8          const unsigned char SegDataTime[10]     = {0xF5,0x60,0xD3,0xF2,0x66,0xB6,0xB7,0xE0,0xF7,0xF6};
+   9          const unsigned char SegDataVoltage[10]  = {0xF5,0x05,0xD3,0x97,0x27,0xB6,0xF6,0x15,0xF7,0xB7};
+  10          const unsigned char SegDataMile[10]     = {0xFA,0x0A,0xD6,0x9E,0x2E,0xBC,0xFC,0x1A,0xFE,0xBE};
+  11          const unsigned char SegDataMile2[10]    = {0xAF,0xA0,0x6D,0xE9,0xE2,0xCB,0xCF,0xA1,0xEF,0xEB};
+  12          const unsigned char SegDataSpeed[10]    = {0x5F,0x06,0x6B,0x2F,0x36,0x3D,0x7D,0x07,0x7F,0x3F};
+  13          const unsigned char SegDataTemp[10]     = {0xFA,0x0A,0xBC,0x9E,0x4E,0xD6,0xF6,0x8A,0xFE,0xDE};
+  14          
+  15          void MenuUpdate(BIKE_STATUS* bike)
+  16          {
+  17   1              unsigned char i = 0;
+  18   1        
+  19   1              flashflag++;
+  20   1              flashflag %= 10;
+  21   1              
+  22   1              for(i=0;i<18;i++)       BL_Data[i] = 0x00;
+  23   1              
+  24   1          if ( bike->bLFlashType ){
+  25   2                      if ( bike->bLeftFlash   )       BL_Data[6] |= 0x08;     //S1
+  26   2          } else {
+  27   2              if ( bike->bLeftFlash   && flashflag >= 5 )     BL_Data[6] |= 0x08;     //S1
+  28   2          }
+  29   1          if ( bike->bRFlashType ){
+  30   2                      if ( bike->bRightFlash  )       BL_Data[15]|= 0x80;     //S9
+  31   2          } else {
+  32   2              if ( bike->bRightFlash && flashflag >= 5 )      BL_Data[15]|= 0x80;     //S9
+  33   2          }
+  34   1              
+  35   1              if( bike->bCruise               ) BL_Data[5] |= 0x02;   //S4
+  36   1              if( bike->bNearLight    ) BL_Data[5] |= 0x01;   //S5
+  37   1              if( bike->bHallERR              ) BL_Data[5] |= 0x08;   //S2    电机霍尔故障
+  38   1              if( bike->bWheelERR     ) BL_Data[5] |= 0x04;   //S3    手把故障
+  39   1              if( bike->bECUERR               ) BL_Data[15]|= 0x20;   //S7    电机控制器故障
+  40   1              //if( bike->bPhaseERR   ) BL_Data[15]|= 0x40;   //S8    电机缺相故障
+  41   1              if( bike->bBraked               ) BL_Data[15]|= 0x40;   //S8    刹车
+  42   1      
+  43   1        /***************************Battery Area Display**********************************/
+  44   1              BL_Data[16] |= 0x10;
+  45   1              switch ( bike->ucBatStatus ){
+  46   2          case 0:
+  47   2                      if ( flashflag < 5 ) 
+  48   2                              BL_Data[16]&= 0xEF;break;
+  49   2          case 1: BL_Data[3] |= 0x10;break;
+  50   2          case 2: BL_Data[3] |= 0x30;break;
+  51   2          case 3: BL_Data[3] |= 0x70;break;
+  52   2          case 4: BL_Data[3] |= 0xF0;break;
+  53   2          case 5: BL_Data[3] |= 0xF0;BL_Data[ 9] |= 0x80;break;
+  54   2          case 6: BL_Data[3] |= 0xF0;BL_Data[ 9] |= 0xC0;break;      
+C51 COMPILER V9.50a   DISPLAY_9040                                                         12/04/2017 10:55:21 PAGE 2   
+
+  55   2          case 7: BL_Data[3] |= 0xF0;BL_Data[ 9] |= 0xE0;break;
+  56   2          case 8: BL_Data[3] |= 0xF0;BL_Data[ 9] |= 0xF0;break;          
+  57   2          default:break; 
+  58   2              }
+  59   1      
+  60   1              /***************************Temp Area Display**********************************/
+  61   1              BL_Data[3] |= (SegDataTemp[abs(bike->siTemperature/10)%10] & 0xF);
+  62   1              BL_Data[4] |= (SegDataTemp[abs(bike->siTemperature/10)%10] & 0xF0);
+  63   1              BL_Data[4] |= (SegDataTemp[abs(bike->siTemperature/10)/10] & 0xF);       
+  64   1              BL_Data[5] |= (SegDataTemp[abs(bike->siTemperature/10)/10] & 0xF0);  
+  65   1              BL_Data[3] |= 0x1;
+  66   1              if (bike->siTemperature < 0)
+  67   1                      BL_Data[4] |= 0x01;       
+  68   1                      
+  69   1              /***************************Time Area Display**********************************/
+  70   1      #if ( TIME_ENABLE == 1 )
+                      if ( bike->bHasTimer ){
+                              //DISPLAY 1 
+                              if(bike->ucHour > 9) BL_Data[8] |= 0x08; else BL_Data[8] |= 0x00;     
+                              BL_Data[8] |= ( SegDataTime[(bike->ucHour/10    )%10]);
+                              BL_Data[7] |= ( SegDataTime[(bike->ucMinute/10  )%10]);
+                              BL_Data[6] |= ( SegDataTime[ bike->ucMinute              %10]);       
+                              if ( bike->bTimeSet ){
+                                      switch ( bike->ucTimePos ){
+                                      case 0:
+                                              if ( flashflag < 5  ) { 
+                                                      BL_Data[8] &= 0xF7; 
+                                                      BL_Data[8] &= 0x08; 
+                                                      BL_Data[7] &= 0x08; 
+                                                      BL_Data[6] &= 0x08;
+                                              }
+                                              break;                  
+                                      case 1:if ( flashflag < 5  ) BL_Data[8] &= 0x08; break;
+                                      case 2:if ( flashflag < 5  ) BL_Data[7] &= 0x08; break;
+                                      case 3:if ( flashflag < 5  ) BL_Data[6] &= 0x08; break;
+                                      default:break;          
+                                      }
+                                      BL_Data[7] |= 0x08;
+                              } else if ( flashflag < 5 ) BL_Data[7] |= 0x08; //col
+                      }
+              #endif
+  96   1              
+  97   1              /*************************** Voltage Display**********************************/
+  98   1              BL_Data[2] |= (SegDataVoltage[ bike->uiVoltage           %10]) | 0x8;
+  99   1              BL_Data[1] |= (SegDataVoltage[(bike->uiVoltage/10       )%10]) | 0x8;
+ 100   1              BL_Data[0] |= (SegDataVoltage[(bike->uiVoltage/100      )%10]); 
+ 101   1              // BL_Data[2] |= (SegDataVoltage[ bike->uiVoltage/10 %10]) | 0x8;
+ 102   1              // BL_Data[1] |= (SegDataVoltage[(bike->uiVoltage/100)%10]);
+ 103   1      
+ 104   1              /*************************** Mile Display**********************************/  
+ 105   1              BL_Data[12] |= (SegDataMile [ bike->ulMile               %10]) | 0x1;
+ 106   1              BL_Data[11] |= (SegDataMile [(bike->ulMile/10   )%10]);
+ 107   1              BL_Data[10] |= (SegDataMile [(bike->ulMile/100  )%10]); 
+ 108   1              BL_Data[ 9] |= (SegDataMile [(bike->ulMile/1000 )%10] & 0x0F); 
+ 109   1              BL_Data[15] |= (SegDataMile [(bike->ulMile/1000 )%10] >> 4);
+ 110   1              BL_Data[16] |= (SegDataMile2[(bike->ulMile/10000)%10]); 
+ 111   1              if ( (bike->bMileFlash && flashflag < 5) ) {
+ 112   2                      BL_Data[12]  = 0x1;
+ 113   2                      BL_Data[11]  = 0;
+ 114   2                      BL_Data[10]  = 0; 
+ 115   2                      BL_Data[ 9] &= 0xF0; 
+ 116   2                      BL_Data[15] &= 0xF0;
+C51 COMPILER V9.50a   DISPLAY_9040                                                         12/04/2017 10:55:21 PAGE 3   
+
+ 117   2                      BL_Data[16]  = 0; 
+ 118   2              }               
+ 119   1      
+ 120   1              /*************************** Speed Display**********************************/
+ 121   1              BL_Data[14] |= (SegDataSpeed[ bike->ucSpeed             %10]);
+ 122   1              BL_Data[13] |= (SegDataSpeed[(bike->ucSpeed/10) %10]); 
+ 123   1              BL_Data[14] |= 0x80;
+ 124   1              if ( bike->bSpeedFlash ){
+ 125   2                      if ( flashflag < 5  ) {
+ 126   3                              BL_Data[14] = 0x80;
+ 127   3                              BL_Data[13] = 0; 
+ 128   3                      }
+ 129   2              }
+ 130   1      
+ 131   1              /*************************** Mode Display**********************************/ 
+ 132   1              switch (bike->ucSpeedMode){
+ 133   2          case 1: BL_Data[11] |= 0x01;break;
+ 134   2          case 2: BL_Data[10] |= 0x01;break;
+ 135   2          case 3: BL_Data[9 ] |= 0x01;break;
+ 136   2              case 4: BL_Data[13] |= 0x80;break;
+ 137   2          default:
+ 138   2                              BL_Data[11] &= ~0x01;
+ 139   2                              BL_Data[10] &= ~0x01;
+ 140   2                              BL_Data[ 9] &= ~0x01;
+ 141   2                              BL_Data[13] &= ~0x80;
+ 142   2                              break;
+ 143   2              }
+ 144   1        
+ 145   1              BL_Write_Data(0,18,BL_Data);
+ 146   1      }
+ 147          
+ 148          
+ 149          void Delay(uint32_t nCount)
+ 150          {
+ 151   1        for(; nCount != 0; nCount--);
+ 152   1      }
+ 153          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1515    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =     80       7
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

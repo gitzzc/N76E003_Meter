@@ -2,6 +2,7 @@
 #define __ADC_H__
 
 #define ADC_GET_VDD(bgvalue) 0x1000UL*Bandgap_Voltage/bgvalue
+
 #define ADC_TRIG()	set_ADCS
 
 #define ADC_BUF_LEN	32

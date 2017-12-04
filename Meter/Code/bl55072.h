@@ -102,7 +102,7 @@ typedef struct
 #define BL_ADDR               (unsigned char)(0x7C)
 #define BL_TIMEOUT            (uint16_t)(0x1000)
 
-void BL55072_Config(unsigned char allon);
+void BL55072_Config(unsigned char status);
 unsigned char BL_Write_Data(unsigned char ADSTART,unsigned char LEN,unsigned char * p);
 unsigned char I2C_WriteBuf(unsigned char chip,unsigned char* buf, unsigned char len);
 unsigned char I2C_ReadBuf(unsigned char chip,unsigned char addr,unsigned char* buf, unsigned char len);
