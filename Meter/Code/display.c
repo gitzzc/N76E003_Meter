@@ -6,4 +6,14 @@
 	#include "display_8794GCT.c"
 #elif ( defined LCD6040 )
 	#include "display_6040.c"
+#elif ( defined TM1640 )
+	#include "display_TM1640.c"
+#elif ( defined TM1624 )
+	#include "display_TM1624.c"
+#else
+	#error "Please select a display type!!!"
 #endif
+
+
+
+

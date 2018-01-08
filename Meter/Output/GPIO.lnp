@@ -5,9 +5,13 @@
 ".\Output\display.obj",
 ".\Output\bl55072.obj",
 ".\Output\yxt.obj",
+".\Output\TM16XX.obj",
 ".\Output\Common.obj",
 ".\Output\Delay.obj",
 ".\Output\STARTUP.obj" 
 TO ".\Output\GPIO" 
-PRINT(".\LST\GPIO.m51") RAMSIZE(256) 
+PRINT(".\LST\GPIO.m51") IXREF 
+RAMSIZE(256) 
 DISABLEWARNING (16) 
+CODE( 0X0000-0X47FF )
+XDATA( 0X0000-0X02FF )

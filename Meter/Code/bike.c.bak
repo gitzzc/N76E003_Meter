@@ -80,22 +80,18 @@ int GetTemp(void)
 	uiTempBuf[ucIndex++] = uiADC_SampleBuf[0][0];
 	if ( ucIndex >= ContainOf(uiTempBuf) )
 		ucIndex = 0;
-	for(i=0,slTemp=0;i<ContainOf(uiTempBuf);i++)
-		slTemp += uiTempBuf[i];
-	slTemp /= ContainOf(uiTempBuf);
+	exchange_sort16(uiTempBuf,ContainOf(uiTempBuf));
+	sample = get_average16(uiTempBuf+4,ContainOf(uiTempBuf)-4);
 
-	//slTemp = 470UL*1024/(1024-slTemp)-470;
-	//slTemp = NTCtoTemp(slTemp)/10;
-	//slTemp = ((3600- (long)slTemp * 2905/1024)/10);
-
-	slTemp = 10000*1024UL/(1024-slTemp)-10000;
+	//slTemp = 10000*1024UL/(1024-sample)-10000;
+	slTemp = 10000UL*(int32_t)sample/(1024-sample);
 	slTemp = NTCtoTemp(slTemp);
 	if ( slTemp > 999  ) slTemp =  999;
 	if ( slTemp < -999 ) slTemp = -999;
 	
 	return slTemp;
 }
-#if 0
+
 uint16_t GetVol(void)
 {
 	static uint8_t ucIndex = 0;
@@ -105,32 +101,64 @@ uint16_t GetVol(void)
 	uiVolBuf[ucIndex++] = uiADC_SampleBuf[0][0];
 	if ( ucIndex >= ContainOf(uiVolBuf) )
 		ucIndex = 0;
-	for(i=0,uiVol=0;i<ContainOf(uiVolBuf);i++)
-		uiVol += uiVolBuf[i];
-	uiVol /= ContainOf(uiVolBuf);
-	uiVol = (uint32_t)uiVol*1050/1024 ;
+
+	for(i=0;i<ContainOf(uiVolBuf);i++)
+		uiBuf[i] = uiVolBuf[i];
+	exchange_sort16(uiBuf,ContainOf(uiBuf));
+	for(i=0;i<ContainOf(uiBuf);i++){
+		if ( uiBuf[i] > 100 )	break;
+	}
+	uiVol = 0;
+	if ( i + 3*2 < ContainOf(uiBuf) )
+		uiVol = get_average16(uiBuf+i+3,ContainOf(uiBuf)-i-3*2);
+
+//	uiVol = (uint32_t)uiVol / 1024UL / 10 * (200+10) * 5 * 10;	// 200k+10k
+	uiVol = VOL_CALC(uiVol);
 	
 	return uiVol;
 }
-#else
-uint8_t GetVolStabed(uint16_t* uiVol)
+
+#ifdef BATV_ADC_CH2
+uint16_t GetVol2(void)
 {
-	uint32_t ulMid;
-	uint16_t uiBuf[32];
+	static uint8_t ucIndex = 0;
+	uint16_t uiBuf[ContainOf(uiVol2Buf)];
+	uint16_t uiVol;
 	uint8_t i;
-	
-	*uiVol = (uint32_t)uiADC_SampleBuf[0][0]*1050UL/1024UL;
 
-	for(i=0,ulMid=0;i<32;i++)	ulMid += uiBuf[i];
-	ulMid /= 32;
-	for( i=0;i<32;i++){
-		if ( ulMid > 5 && ((ulMid *100 / uiBuf[i]) > 101 ||  (ulMid *100 / uiBuf[i]) < 99) )
-			return 0;
+	GPIO_Init(GPIOC, GPIO_PIN_4, GPIO_MODE_IN_FL_NO_IT);  //B+  
+	ADC1_DeInit();  
+	ADC1_Init(ADC1_CONVERSIONMODE_CONTINUOUS, BATV_ADC_CH2, ADC1_PRESSEL_FCPU_D2, \
+				ADC1_EXTTRIG_TIM, DISABLE, ADC1_ALIGN_RIGHT, BATV_ADC_SCH2,\
+				DISABLE);
+	ADC1_Cmd(ENABLE);
+	for(i=0;i<ContainOf(uiBuf);i++){
+		Delay(500);  
+		ADC1_StartConversion(); 
+		while ( ADC1_GetFlagStatus(ADC1_FLAG_EOC) == RESET );  
+		uiBuf[i] = ADC1_GetConversionValue();
 	}
-	
-	return 1;
-}
+	ADC1_Cmd(DISABLE);
 
+	uiVol2Buf[ucIndex++] = get_average16(uiBuf,ContainOf(uiBuf));
+	if ( ucIndex >= ContainOf(uiVol2Buf) )
+		ucIndex = 0;
+	
+	for(i=0;i<ContainOf(uiVol2Buf);i++)
+		uiBuf[i] = uiVol2Buf[i];
+	exchange_sort16(uiBuf,ContainOf(uiBuf));
+	for(i=0;i<ContainOf(uiBuf);i++){
+		if ( uiBuf[i] > 100 )	break;
+	}
+	uiVol = 0;
+	if ( i + 3*2 < ContainOf(uiBuf) )
+		uiVol = get_average16(uiBuf+i+3,ContainOf(uiBuf)-i-3*2);
+	
+//	uiVol = (uint32_t)uiVol / 1024UL / 10 * (200+10) * 5 * 10;	// 200k+10k
+	uiVol = VOL_CALC(uiVol);
+	
+	return uiVol;
+}
 #endif
 
 #if ( PCB_VER == 0013 )
@@ -144,9 +172,8 @@ uint8_t GetSpeedAdj(void)
 	if ( ucIndex >= ContainOf(uiSpeedBuf) )
 		ucIndex = 0;
 
-	for(i=0,uiAdj=0;i<ContainOf(uiSpeedBuf);i++)
-		uiAdj += uiSpeedBuf[i];
-	uiAdj /= ContainOf(uiSpeedBuf);
+	uiAdj = get_average16(uiSpeedBuf,ContainOf(uiSpeedBuf));
+
 	
 	if ( uiAdj > 99 )
 		uiAdj = 99;
@@ -159,15 +186,10 @@ uint8_t GetSpeed(void)
 {
 	static uint8_t ucIndex = 0;
 	uint16_t uiSpeed;
-	uint8_t i;
 
+#ifdef SPEEDV_ADC_CH
 	uiSpeedBuf[ucIndex++] = uiADC_SampleBuf[0][0];
-	if ( ucIndex >= ContainOf(uiSpeedBuf) )
-		ucIndex = 0;
 
-	for(i=0,uiSpeed=0;i<ContainOf(uiSpeedBuf);i++)
-		uiSpeed += uiSpeedBuf[i];
-	uiSpeed /= ContainOf(uiSpeedBuf);
 	
 	if ( sConfig.uiSysVoltage		== 48 ){
 		uiSpeed = SPEED_CALC_48V((uint32_t)uiSpeed);
@@ -175,13 +197,22 @@ uint8_t GetSpeed(void)
 		uiSpeed = SPEED_CALC_60V((uint32_t)uiSpeed);
 	} else if ( sConfig.uiSysVoltage== 72 )	{
 		uiSpeed = SPEED_CALC_72V((uint32_t)uiSpeed);
-	}
+	} else
+		uiSpeed = 0;
+#else	
+	uiSpeed = GetSpeedHall();
+#endif
+
+	uiSpeedBuf[ucIndex++] = uiSpeed;
+	if ( ucIndex >= ContainOf(uiSpeedBuf) )
+		ucIndex = 0;
+
+	uiSpeed = get_average16(uiSpeedBuf,ContainOf(uiSpeedBuf));
 	if ( uiSpeed > 99 )
 		uiSpeed = 99;
 	
   return uiSpeed;
 }
-
 
 void GetSysVoltage(void)
 {	
@@ -530,7 +561,6 @@ uint8_t MileSetupTask(void)
 		if ( sBike.bTurnRight == 0 && sBike.bTurnLeft == 1 ) {
 			ucCount = 0;
 			TaskFlag = TASK_EXIT;
-			sBike.bMileFlash = 0;
 			sBike.ulFMile 	= 0;
 			sBike.ulMile 	= 0;
 			sConfig.ulMile 	= 0;

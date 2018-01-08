@@ -12,7 +12,7 @@ const unsigned char SegDataMile2[10]    = {0xAF,0xA0,0x6D,0xE9,0xE2,0xCB,0xCF,0x
 const unsigned char SegDataSpeed[10]    = {0x5F,0x06,0x6B,0x2F,0x36,0x3D,0x7D,0x07,0x7F,0x3F};
 const unsigned char SegDataTemp[10] 	= {0xFA,0x0A,0xBC,0x9E,0x4E,0xD6,0xF6,0x8A,0xFE,0xDE};
 
-void MenuUpdate(BIKE_STATUS* bike)
+void Display(BIKE_STATUS* bike)
 {
 	unsigned char i = 0;
   
@@ -21,17 +21,8 @@ void MenuUpdate(BIKE_STATUS* bike)
 	
 	for(i=0;i<18;i++)	BL_Data[i] = 0x00;
 	
-    if ( bike->bLFlashType ){
-		if ( bike->bLeftFlash 	)	BL_Data[6] |= 0x08;	//S1
-    } else {
-     	if ( bike->bLeftFlash 	&& flashflag >= 5 )	BL_Data[6] |= 0x08;	//S1
-    }
-    if ( bike->bRFlashType ){
-		if ( bike->bRightFlash	)	BL_Data[15]|= 0x80;	//S9
-    } else {
-     	if ( bike->bRightFlash && flashflag >= 5 )	BL_Data[15]|= 0x80;	//S9
-    }
-	
+    if( bike->bLFlashType || flashflag >= 5 ) { if ( bike->bLeftFlash 	) BL_Data[6] |= 0x08; }	//S1
+    if( bike->bRFlashType || flashflag >= 5 ) {	if ( bike->bRightFlash	) BL_Data[15]|= 0x80; }	//S9
 	if( bike->bCruise		) BL_Data[5] |= 0x02;	//S4
 	if( bike->bNearLight 	) BL_Data[5] |= 0x01;	//S5
 	if( bike->bHallERR 		) BL_Data[5] |= 0x08;	//S2	电机霍尔故障
@@ -41,11 +32,11 @@ void MenuUpdate(BIKE_STATUS* bike)
 	if( bike->bBraked  		) BL_Data[15]|= 0x40;	//S8 	刹车
 
   /***************************Battery Area Display**********************************/
-	BL_Data[16] |= 0x10;
-	switch ( bike->ucBatStatus ){
+	BL_Data[16]|= 0x10;
+	switch ( GetBatStatus(sBike.uiBatVoltage) ){
     case 0:
 		if ( flashflag < 5 ) 
-			BL_Data[16]&= 0xEF;break;
+			BL_Data[16]&=~0x10;break;
     case 1: BL_Data[3] |= 0x10;break;
     case 2: BL_Data[3] |= 0x30;break;
     case 3: BL_Data[3] |= 0x70;break;
@@ -95,37 +86,27 @@ void MenuUpdate(BIKE_STATUS* bike)
 #endif
 	
 	/*************************** Voltage Display**********************************/
-	BL_Data[2] |= (SegDataVoltage[ bike->uiVoltage	 	 %10]) | 0x8;
-	BL_Data[1] |= (SegDataVoltage[(bike->uiVoltage/10	)%10]) | 0x8;
-	BL_Data[0] |= (SegDataVoltage[(bike->uiVoltage/100	)%10]); 
-	// BL_Data[2] |= (SegDataVoltage[ bike->uiVoltage/10 %10]) | 0x8;
-	// BL_Data[1] |= (SegDataVoltage[(bike->uiVoltage/100)%10]);
+	BL_Data[2] |= (SegDataVoltage[ bike->uiBatVoltage	 	 %10]) | 0x8;
+	BL_Data[1] |= (SegDataVoltage[(bike->uiBatVoltage/10	)%10]) | 0x8;
+	BL_Data[0] |= (SegDataVoltage[(bike->uiBatVoltage/100	)%10]); 
+	// BL_Data[2] |= (SegDataVoltage[ bike->uiBatVoltage/10 %10]) | 0x8;
+	// BL_Data[1] |= (SegDataVoltage[(bike->uiBatVoltage/100)%10]);
 
 	/*************************** Mile Display**********************************/  
+	if ( bike->bMileFlash == 0 || flashflag >= 5 ) {
 	BL_Data[12] |= (SegDataMile [ bike->ulMile	   	 %10]) | 0x1;
 	BL_Data[11] |= (SegDataMile [(bike->ulMile/10   )%10]);
 	BL_Data[10] |= (SegDataMile [(bike->ulMile/100  )%10]); 
 	BL_Data[ 9] |= (SegDataMile [(bike->ulMile/1000 )%10] & 0x0F); 
 	BL_Data[15] |= (SegDataMile [(bike->ulMile/1000 )%10] >> 4);
 	BL_Data[16] |= (SegDataMile2[(bike->ulMile/10000)%10]); 
-	if ( (bike->bMileFlash && flashflag < 5) ) {
-		BL_Data[12]  = 0x1;
-		BL_Data[11]  = 0;
-		BL_Data[10]  = 0; 
-		BL_Data[ 9] &= 0xF0; 
-		BL_Data[15] &= 0xF0;
-		BL_Data[16]  = 0; 
 	}		
 
 	/*************************** Speed Display**********************************/
+	if ( bike->bSpeedFlash == 0 || flashflag >= 5 ) {
 	BL_Data[14] |= (SegDataSpeed[ bike->ucSpeed	 	%10]);
 	BL_Data[13] |= (SegDataSpeed[(bike->ucSpeed/10)	%10]); 
 	BL_Data[14] |= 0x80;
-	if ( bike->bSpeedFlash ){
-		if ( flashflag < 5  ) {
-			BL_Data[14] = 0x80;
-			BL_Data[13] = 0; 
-		}
 	}
 
 	/*************************** Mode Display**********************************/ 
@@ -145,9 +126,4 @@ void MenuUpdate(BIKE_STATUS* bike)
 	BL_Write_Data(0,18,BL_Data);
 }
 
-
-void Delay(uint32_t nCount)
-{
-  for(; nCount != 0; nCount--);
-}
 

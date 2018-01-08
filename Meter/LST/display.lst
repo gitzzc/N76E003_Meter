@@ -1,28 +1,2013 @@
-C51 COMPILER V9.50a   DISPLAY                                                              12/04/2017 14:02:11 PAGE 1   
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 1   
 
 
 C51 COMPILER V9.50a, COMPILATION OF MODULE DISPLAY
 OBJECT MODULE PLACED IN .\Output\display.obj
 COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE Code\display.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Include) DEFINE(
-                    -FOSC_160000) DEBUG OBJECTEXTEND PRINT(.\LST\display.lst) OBJECT(.\Output\display.obj)
+                    -FOSC_160000) DEBUG OBJECTEXTEND LISTINCLUDE SYMBOLS PRINT(.\LST\display.lst) PREPRINT(.\LST\display.i) OBJECT(.\Output\d
+                    -isplay.obj)
 
 line level    source
 
    1          #include "bike.h"
+   1      =1  /**
+   2      =1    ******************************************************************************
+   3      =1    * @file    
+   4      =1    * @author  ahzzc@sina.com
+   5      =1    * @version V2.xx
+   6      =1    * @date    
+   7      =1    * @brief   
+   8      =1    ******************************************************************************
+   9      =1    * @Changlog
+  10      =1    * V2.35 - 20180104
+  11      =1    * 修改48V系统电量显示最后一格电压值从481到479；
+  12      =1    * 增加电压标定延时，等待电压稳定；
+  13      =1    * 修改霍尔速度处理方式；
+  14      =1    * 
+  15      =1    * V2.34 - 20171226
+  16      =1    * 改BAT_STATUS_xxV，在bike.h文件中定义；调整电压采样滤波效果；
+  17      =1    * 
+  18      =1    * V2.33 - 20171219
+  19      =1    * 改电量外框常亮，调整TM1640通讯速度；
+  20      =1    * 
+  21      =1    * V2.32 - 20171214
+  22      =1    * 完善对JINGPENG-12080的支持；
+  23      =1    * 
+  24      =1    * V2.31 - 20171214
+  25      =1    * 增加对JINGPENG-12080的支持；
+  26      =1    *
+  27      =1    * V2.30 - 20171201
+  28      =1    * 减小闪光器关闭时的判断时间，更改MileTask结构，优化显示效果；
+  29      =1    *
+  30      =1    * V2.29 - 20171128
+  31      =1    * 去除MileResetTask中对速度和刹车状态的判断；改正上电打右转时进入MileResetTask�
+             -��返回1，造成单次里程显示时间长的问题
+  32      =1    *
+  33      =1    * V2.28 - 20171128
+  34      =1    * 改正RESET_CONFIG时显示的功能，增加JIKE13050的Parking灯输出控制；
+  35      =1    *
+  36      =1    * V2.27 - 20171128
+  37      =1    * 增加RESET_CONFIGA功能，去掉程序检测到版本不一致时清空配置信息的功能；
+  38      =1    *
+  39      =1    * V2.26 - 20171128
+  40      =1    * 修改一线通函数每次调用后都更新速度，解决一线通状态下速度调整时闪烁的
+             -问题；
+  41      =1    * 改正了相电压状态下速度调整时显示异常的问题；
+  42      =1    * 
+  43      =1    * V2.25 - 20171127
+  44      =1    * 增加软件版本配置信息，当程序检测到版本不一致时清空配置信息；
+  45      =1    * 修改系统电压功能为预定义模式；
+  46      =1    * 增加PCB200的发行版本；
+  47      =1    * 
+  48      =1    * V2.24 - 20171125
+  49      =1    * 改正速度修正的问题；
+  50      =1    * 
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 2   
+
+  51      =1    * V2.23 - 20171122
+  52      =1    * 改正左右转信号检测问题，MileResetTask问题，修改程序结构；
+  53      =1    * 
+  54      =1    * V2.22 - 20171120
+  55      =1    * 增加对9040基本版本2.0PCB的支持、JIKE13050版本的支持
+  56      =1    * 增加相关设计文档
+  57      =1    * 
+  58      =1    * V2.21 - 20171102
+  59      =1    * 增加参数设置单次里程功能，可以通过开关操作进行设置；
+  60      =1    * 
+  61      =1    * V2.20 - 20171027
+  62      =1    * 统一清里程、速度设定的方法；兼容左右灯开关信号和闪光器信号；统一变量
+             -命名方式；
+  63      =1    * 
+  64      =1    * V2.13 - 20170921
+  65      =1    * 改正左右转闪光器信号的识别，MileResetTask,YXT_SpeedCaltTask两个功能可以更稳定�
+             -�作
+  66      =1    * 
+  67      =1    * V2.12 - 20170916
+  68      =1    * 按9040_5535型仪表软件设置要求-0914.docx进行更改
+  69      =1    * 增加MileResetTask,YXT_SpeedCaltTask两个功能．
+  70      =1    * 增加相电压速度时的调节功能，改下一线通电压时初始化的问题．
+  71      =1  
+  72      =1    * 
+  73      =1    * V2.11 - 20170909
+  74      =1    * 按9040_5535型仪表软件设置要求-0908.doc进行更改：
+  75      =1    * 1.  60/72V系统，电池图标对应电压值
+  76      =1    * 2.  无挡位输入时，相电压对应速度
+  77      =1    * 3.  计算累积里程时，设定的最高速度
+  78      =1    * 增加LCD9040_4860版本
+  79      =1    * 修改左右转灯为独立闪烁
+  80      =1    * 修改工程结构
+  81      =1    * 修正最高速度限制
+  82      =1    * 更改ＧetVol函数和程序结构使用电源快速开关过程中，仪表显示不变．
+  83      =1    * 开机全显时间改为２秒．
+  84      =1    *
+  85      =1    * V2.10 - 20170824
+  86      =1    * 修改总里程进行复位的方法：打右转灯，开机后10秒内开关大灯8次；
+  87      =1    * 左右转信号改回中断方式，适应闪光器；
+  88      =1    * 增加OUPAINONG四个版本的支持；
+  89      =1    * 改正OUPAINONG_6072版本的电压识别；
+  90      =1    *
+  91      =1    * V2.09 - 20170821
+  92      =1    * 增加了开机3秒内开关8次大灯对总里程进行复位的方法；
+  93      =1    * 左右转信号由中断改为程序扫描方式；
+  94      =1    * 增加批量编译功能；
+  95      =1    *
+  96      =1    * V2.08 - 20170817
+  97      =1    * 修改刹车图标显示方式，当YXT DATA2 BIT5 为1时显示刹车灯
+  98      =1    * 改正DENGGUAN_XUNYING_T、JINPENG_6072的速度标定
+  99      =1    * 优化程序空间
+ 100      =1    *
+ 101      =1    * V2.07
+ 102      =1    * 增加开机显示累计里程5秒，如果2秒后有速度则跳到显示单次里程
+ 103      =1    * 修正对一线通吉详方案的支持，数据高电平占空比放宽到15-42
+ 104      =1    *
+ 105      =1    * V2.06
+ 106      =1    * 改正标定时的异常
+ 107      =1    *
+ 108      =1    * V2.05
+ 109      =1    * 改正温度显示
+ 110      =1    *
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 3   
+
+ 111      =1    * V2.04
+ 112      =1    * V2.02
+ 113      =1    * 统一各版本采用release进行定义
+ 114      =1    * 增加金彭产品支持，JINPENG_4060、JINPENG_6072
+ 115      =1    * 删除对老PCB版本的支持，
+ 116      =1    *
+ 117      =1    * V2.01
+ 118      =1    * 一线通改为多协议同时支持；
+ 119      =1    * 速度分档修正；
+ 120      =1    *
+ 121      =1    * V2.00
+ 122      =1          * 功能：
+ 123      =1          * 1.系统电压通过MODE1,MODE2自动检测；
+ 124      =1          * 2.时钟功能自动检测，无芯片不显示；
+ 125      =1          * 3.通过左右转向进行时间调整模式；
+ 126      =1          * 4.通过串口可进行参数标定,  短接低速、SWIM信号进行参数标定；
+ 127      =1          * 5.参数保存于EEPROM;
+ 128      =1          * 6.一线通功能；
+ 129      =1          * 7.档位信息优先读取一线通数据，实现四档信息判断，一线通中断后采用档把�
+             -�据；
+ 130      =1          * 8.开启开门狗功能；
+ 131      =1          * 9.通过PCB_VER定义不同的硬件版本，支持0011、0012、0022、0041；
+ 132      =1          *10.通过YXT_XX定义不同的控制器版本；
+ 133      =1    *
+ 134      =1    ******************************************************************************
+ 135      =1    */
+ 136      =1  /******************************************************************************/
+ 137      =1  
+ 138      =1  #ifndef __BIKE_H__
+ 139      =1  #define __BIKE_H__
+ 140      =1  
+ 141      =1  /******************************************************************************/
+ 142      =1  //release define
+ 143      =1  #define LCD9040
+ 144      =1  //#define LCD9040_VD48H72L_ST
+ 145      =1  //#define LCD9040_VD48H72N_ST
+ 146      =1  //#define LCD9040_JP_45KM
+ 147      =1  //#define JINPENG_4860
+ 148      =1  //#define JINPENG_6072
+ 149      =1  //#define JINPENG_9737
+ 150      =1  //#define JINPENG_QD
+ 151      =1  //#define LCD6040
+ 152      =1  //#define LCD9040
+ 153      =1  //#define LCD9040_4860
+ 154      =1  //#define LCD9040T
+ 155      =1  //#define JIKE13050
+ 156      =1  //#define DENGGUAN_XUNYING              //DG55,BLSP55
+ 157      =1  //#define DENGGUAN_XUNYING_T    //TDG55
+ 158      =1  //#define BENLING_OUSHANG               //BL60_72
+ 159      =1  //#define BENLING_BL48_60               //BL48_60
+ 160      =1  //#define BENLING_ZHONGSHA              //BLV72
+ 161      =1  //#define OUJUN                                 //M2_60_72
+ 162      =1  //#define OUPAINONG_4860                //LCD9040_4860
+ 163      =1  //#define OUPAINONG_6072                //LCD9040_6072
+ 164      =1  //#define OUPAINONG_ADJ_4860    //LCD9040ADJ_4860
+ 165      =1  //#define OUPAINONG_ADJ_6072    //LCD9040ADJ_6072
+ 166      =1  /******************************************************************************/
+ 167      =1  
+ 168      =1  //#define SW_VER                                
+ 169      =1  
+ 170      =1  //#define SINGLE_TRIP   
+ 171      =1  //#define LCD_SEG_TEST
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 4   
+
+ 172      =1  //#define RESET_CONFIG
+ 173      =1  
+ 174      =1  /******************************************************************************/
+ 175      =1  #define VOL_CALIBRATIOIN        600UL   //60.0V
+ 176      =1  #define TEMP_CALIBRATIOIN       250UL   //25.0C
+ 177      =1  
+ 178      =1  #define PON_ALLON_TIME          2000UL  //2000ms
+ 179      =1  
+ 180      =1  #define DISPLAY_MAX_SPEED       45UL    //40km/h
+ 181      =1  /******************************************************************************/
+ 182      =1  
+ 183      =1  #if defined LCD9040
+ 184      =1          #define PCB_VER         0100
+ 185      =1          //#define LCD9040
+ 186      =1          #define TIME_ENABLE 0
+ 187      =1          #define YXT_ENABLE  1                           
+ 188      =1          #define VD72L48L        
+ 189      =1  #elif defined LCD9040_ST
+           =1         #define PCB_VER         0200
+           =1         #define LCD9040
+           =1         #define TIME_ENABLE 0
+           =1         #define YXT_ENABLE  1                           
+           =1         #define VD72L48L        
+           =1         #define SINGLE_TRIP
+           =1 #elif defined LCD9040_VD48H72N_ST
+           =1         #define PCB_VER         0200
+           =1         #define LCD9040
+           =1         #define TIME_ENABLE 0
+           =1         #define YXT_ENABLE  1   
+           =1         #define VD48H72N        
+           =1         #define SINGLE_TRIP
+           =1 #elif defined LCD9040_JP_45KM
+           =1         #define PCB_VER         0200
+           =1         #define LCD9040
+           =1         #define TIME_ENABLE 0
+           =1         #define YXT_ENABLE  1   
+           =1         #define VD72L48L        
+           =1         #define SPEED_CALC_48V(spd) spd*1575UL/8192UL   /*24V->45KM/H*/
+           =1         #define SPEED_CALC_60V(spd) spd*315UL /2048UL   /*30V->45KM/H*/
+           =1         #define SPEED_CALC_72V(spd) spd*525UL /4096UL   /*36V->45KM/H*/
+           =1 #elif defined JIKE13050
+           =1         #define PCB_VER         201745UL
+           =1         #define LCD8794GCT
+           =1         #define TIME_ENABLE 0
+           =1         #define YXT_ENABLE  1
+           =1 //      #define VD48L72N        
+           =1         #define VD48N72L        
+           =1 #elif JINPENG_4860
+           =1         #define PCB_VER         0200
+           =1         #define LCD9040
+           =1         #define TIME_ENABLE 0
+           =1         #define YXT_ENABLE  1   
+           =1         #define VD48L72N
+           =1         #define SPEED_CALC_48V(spd) spd*1575UL/8192UL   /*24V->45KM/H*/
+           =1         #define SPEED_CALC_60V(spd) spd*315UL /2048UL   /*30V->45KM/H*/
+           =1         #define BAT_STATUS_48V          {420,426,432,439,445,451,457,464}
+           =1         #define BAT_STATUS_60V          {520,528,536,542,550,558,566,574}
+           =1         #define BAT_STATUS_72V          {0xFFFF}        
+           =1 #elif defined JINPENG_6072
+           =1         #define PCB_VER         0200
+           =1         #define LCD9040
+           =1         #define TIME_ENABLE 0
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 5   
+
+           =1         #define YXT_ENABLE  1
+           =1         #define VD48N72L        
+           =1         #define SPEED_CALC_60V(spd) spd*1505UL/8192UL   /*24V->43KM/H*/
+           =1         #define SPEED_CALC_72V(spd) spd*1505UL/12288UL  /*36V->43KM/H*/
+           =1         #define BAT_STATUS_48V          {0xFFFF}
+           =1         #define BAT_STATUS_60V          {480,493,506,519,532,545,558,570}
+           =1         #define BAT_STATUS_72V          {550,569,589,608,628,647,667,686}
+           =1 #elif defined JINPENG_9737
+           =1         #define PCB_VER         9737
+           =1         #define TM1624
+           =1         #define TIME_ENABLE 0
+           =1         #define YXT_ENABLE  0
+           =1         #define VD48    
+           =1         #define VOL_CALC(uiVol)         (uint32_t)uiVol*650UL/1024UL    /* 120K+10K */
+           =1         #define BAT_STATUS_48V          {300,410,438,464,490,516};
+           =1         #define BAT_STATUS_60V          {0xFFFF};
+           =1         #define BAT_STATUS_72V          {0xFFFF};
+           =1 
+           =1         #define PERIMETER                       2200UL  //mm
+           =1         #define PULSE_C                         56
+           =1 #elif defined JINPENG_QD
+           =1         #define PCB_VER         0200
+           =1         #define TM1640
+           =1         #define TIME_ENABLE 0
+           =1         #define YXT_ENABLE  1
+           =1         #define VD48L72N        
+           =1         #define SPEED_CALC_48V(spd) spd*1575UL/8192UL   /*24V->45KM/H*/
+           =1         #define SPEED_CALC_60V(spd) spd*315UL /2048UL   /*30V->45KM/H*/
+           =1         #define BAT_STATUS_48V          {420,426,433,440,447,454,462,470};
+           =1         #define BAT_STATUS_60V          {520,528,537,546,555,563,571,579};
+           =1         #define BAT_STATUS_72V          {0xFFFF};
+           =1 #elif defined LCD9040_4860
+           =1         #define PCB_VER         0200
+           =1         #define LCD9040
+           =1         #define TIME_ENABLE 0
+           =1         #define YXT_ENABLE  1   
+           =1         #define VD48H72L        
+           =1         #define SINGLE_TRIP
+           =1 #elif defined LCD9040T
+           =1         #define PCB_VER         0200
+           =1         #define LCD9040
+           =1         #define TIME_ENABLE 1
+           =1         #define YXT_ENABLE  1                           
+           =1         #define VD72L48L        
+           =1 #elif defined LCD6040
+           =1         #define PCB_VER         0200
+           =1         //#define LCD6040
+           =1         #define TIME_ENABLE 0
+           =1         #define YXT_ENABLE  1                           
+           =1         #define VD72L48L        
+           =1         #define BAT_STATUS_48V {425,432,444,456,468};
+           =1         #define BAT_STATUS_60V {525,537,553,566,578};
+           =1         #define BAT_STATUS_72V {630,641,661,681,701};
+           =1 #elif defined DENGGUAN_XUNYING
+           =1         #define PCB_VER         0200
+           =1         #define LCD9040
+           =1         #define TIME_ENABLE 0
+           =1         #define YXT_ENABLE  1
+           =1         #define VD72L48L        
+           =1 #elif defined DENGGUAN_XUNYING_T
+           =1         #define PCB_VER         0200
+           =1         #define LCD9040
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 6   
+
+           =1         #define TIME_ENABLE 1
+           =1         #define YXT_ENABLE  0
+           =1         #define VD72L48L        
+           =1 #elif defined BENLING_OUSHANG
+           =1         #define PCB_VER         0200
+           =1         #define LCD9040
+           =1         #define TIME_ENABLE 0
+           =1         #define YXT_ENABLE  1
+           =1         #define VD72L48L        
+           =1 #elif defined BENLING_BL48_60
+           =1         #define PCB_VER         0200
+           =1         #define LCD9040
+           =1         #define TIME_ENABLE 0
+           =1         #define YXT_ENABLE  1
+           =1         #define VD72L48L        
+           =1 #elif defined BENLING_ZHONGSHA
+           =1         #define PCB_VER         0200
+           =1         #define LCD9040
+           =1         #define TIME_ENABLE 0
+           =1         #define YXT_ENABLE  1
+           =1         #define VD72
+           =1 #elif defined OUJUN
+           =1         #define PCB_VER         0200
+           =1         #define LCD9040
+           =1         #define TIME_ENABLE 0
+           =1         #define YXT_ENABLE  1
+           =1         #define VD48N72L
+           =1 #elif defined OUPAINONG_4860
+           =1         #define PCB_VER         0200
+           =1         #define LCD5535
+           =1         #define TIME_ENABLE 0
+           =1         #define YXT_ENABLE  1                           
+           =1         #define VD48L72N        
+           =1         #define SPEED_CALC_48V(spd) spd*57750UL/242688UL        /*23.7V->55KM/H*/
+           =1         #define SPEED_CALC_60V(spd) spd*63000UL/258048UL        /*25.2V->60KM/H*/
+           =1 #elif defined OUPAINONG_6072
+           =1         #define PCB_VER         0200
+           =1         #define LCD5535
+           =1         #define TIME_ENABLE 0
+           =1         #define YXT_ENABLE  1                           
+           =1         #define VD48N72L        
+           =1         #define SPEED_CALC_60V(spd) spd*68250UL/339968UL        /*33.2V->65KM/H*/
+           =1         #define SPEED_CALC_72V(spd) spd*68250UL/339968UL        /*33.2V->65KM/H*/
+           =1 #elif defined OUPAINONG_ADJ_4860
+           =1         #define PCB_VER         0013
+           =1         #define LCD5535
+           =1         #define TIME_ENABLE 0
+           =1         #define YXT_ENABLE  1                           
+           =1         #define VD72L48L        
+           =1 #elif defined OUPAINONG_ADJ_6072
+           =1         #define PCB_VER         0013
+           =1         #define LCD5535
+           =1         #define TIME_ENABLE 0
+           =1         #define YXT_ENABLE  1                           
+           =1         #define VD72L48L        
+           =1 #else
+           =1         #error "Please select a release!!!"
+           =1 #endif
+ 354      =1  
+ 355      =1  /******************************************************************************/
+ 356      =1  #ifndef PCB_VER
+           =1         #define PCB_VER 0200
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 7   
+
+           =1 #endif
+ 359      =1  
+ 360      =1  #ifndef TIME_ENABLE
+           =1         #define TIME_ENABLE     0                               
+           =1 #endif
+ 363      =1  
+ 364      =1  #ifndef YXT_ENABLE
+           =1         #define YXT_ENABLE      1                               
+           =1 #endif
+ 367      =1  
+ 368      =1  // spd*5V*(200+10)/10/1024/fullV*fullSpeed      /*200k+10k*/
+ 369      =1  #ifndef SPEED_CALC_48V
+ 370      =1  #define SPEED_CALC_48V(spd) spd*1925UL/8192UL   /*200k+10k 24V->55KM/H*/
+ 371      =1  #endif
+ 372      =1  
+ 373      =1  #ifndef SPEED_CALC_60V
+ 374      =1  #define SPEED_CALC_60V(spd) spd*385UL /2048UL;  /*200k+10k 30V->55KM/H*/
+ 375      =1  #endif
+ 376      =1  
+ 377      =1  #ifndef SPEED_CALC_72V
+ 378      =1  #define SPEED_CALC_72V(spd) spd*1925UL/12288UL  /*200k+10k 36V->55KM/H*/
+ 379      =1  #endif
+ 380      =1  
+ 381      =1  // uiVol = (uint32_t)uiVol / 1024UL / 10 * (200+10) * 5 * 10;   /* 200k+10k */
+ 382      =1  #ifndef VOL_CALC
+ 383      =1  #define VOL_CALC(uiVol) (uint32_t)uiVol*1050UL/1024UL   /* 200k+10k */
+ 384      =1  #endif
+ 385      =1  
+ 386      =1  #ifndef BAT_STATUS_48V
+ 387      =1  //#define BAT_STATUS_48V {420,427,435,444,453,462,471,481}
+ 388      =1  #define BAT_STATUS_48V {420,427,435,444,453,462,471,479}        /*20180104*/
+ 389      =1  #endif
+ 390      =1  
+ 391      =1  #ifndef BAT_STATUS_60V
+ 392      =1  #define BAT_STATUS_60V {520,531,544,556,568,577,587,595}
+ 393      =1  #endif
+ 394      =1  
+ 395      =1  #ifndef BAT_STATUS_72V
+ 396      =1  #define BAT_STATUS_72V {630,642,653,664,675,687,700,715}
+ 397      =1  #endif
+ 398      =1  
+ 399      =1  /******************************************************************************/
+ 400      =1  
+ 401      =1  
+ 402      =1  #define TASK_INIT       0
+ 403      =1  #define TASK_STEP1      1
+ 404      =1  #define TASK_STEP2      2
+ 405      =1  #define TASK_STEP3      3
+ 406      =1  #define TASK_STEP4      4
+ 407      =1  #define TASK_EXIT       0xFF
+ 408      =1  
+ 409      =1  #define GPIO_QUASI              0
+ 410      =1  #define GPIO_PUSH_PULL  1
+ 411      =1  #define GPIO_INPUT_ONLY 2
+ 412      =1  #define GPIO_OPEN_DRAIN 3
+ 413      =1  
+ 414      =1  #define RESET   0
+ 415      =1  #define SET             1
+ 416      =1  
+ 417      =1  
+ 418      =1  /******************************************************************************/
+ 419      =1  #define uint8_t         unsigned char
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 8   
+
+ 420      =1  #define uint16_t        unsigned int
+ 421      =1  #define uint32_t        unsigned long
+ 422      =1  
+ 423      =1  #define int8_t          signed char
+ 424      =1  #define int16_t         signed int
+ 425      =1  #define int32_t         signed long
+ 426      =1  
+ 427      =1  /******************************************************************************/
+ 428      =1  typedef struct {
+ 429      =1      uint8_t bLFlashType :1;
+ 430      =1      uint8_t bRFlashType :1;
+ 431      =1      uint8_t bLeftFlash  :1;     
+ 432      =1      uint8_t bRightFlash :1;     
+ 433      =1      uint8_t bTurnLeft   :1;
+ 434      =1      uint8_t bTurnRight  :1;
+ 435      =1          uint8_t bNearLight      :1;
+ 436      =1          uint8_t bLastNear       :1;
+ 437      =1  
+ 438      =1          uint8_t bFarLight       :1;
+ 439      =1          uint8_t bOverSpeed      :1;
+ 440      =1          uint8_t bHotReset       :1;     
+ 441      =1      uint8_t bLcdFresh   :1;
+ 442      =1          uint8_t bMileFlash      :1;     
+ 443      =1          uint8_t bSpeedFlash     :1;     
+ 444      =1          uint8_t bYXTERR         :1;
+ 445      =1          uint8_t bCruise         :1;
+ 446      =1      
+ 447      =1          uint8_t bBraked         :1;
+ 448      =1          uint8_t bECUERR         :1;
+ 449      =1          uint8_t bPhaseERR       :1;
+ 450      =1          uint8_t bHallERR        :1;
+ 451      =1          uint8_t bWheelERR       :1;
+ 452      =1          uint8_t bECO            :1;
+ 453      =1          uint8_t bRCHG           :1;
+ 454      =1          uint8_t bParking        :1;
+ 455      =1          
+ 456      =1          uint8_t bHasTimer       :1;
+ 457      =1          uint8_t bUart           :1;     
+ 458      =1          uint8_t bTimeSet        :1;
+ 459      =1          uint8_t bBT                     :1;
+ 460      =1      
+ 461      =1          uint8_t         ucSpeedMode;
+ 462      =1          signed int      siTemperature;
+ 463      =1          uint16_t        uiBatVoltage;
+ 464      =1          uint16_t        uiBatVoltage2;
+ 465      =1          uint8_t         ucSpeed;
+ 466      =1          uint8_t         ucPHA_Speed;
+ 467      =1          uint8_t         ucYXT_Speed;
+ 468      =1          uint32_t        ulMile;
+ 469      =1          uint32_t        ulFMile;
+ 470      =1          uint16_t        uiTick;
+ 471      =1          uint16_t        uiHallCounter;
+ 472      =1          uint16_t        uiHallCounter_250ms;
+ 473      =1          
+ 474      =1          uint8_t         ucHour;
+ 475      =1          uint8_t         ucMinute;
+ 476      =1          uint8_t         ucSecond;
+ 477      =1          uint8_t         ucTimePos;
+ 478      =1          
+ 479      =1  } BIKE_STATUS,*pBIKE_STATUS;
+ 480      =1          
+ 481      =1  typedef struct {
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 9   
+
+ 482      =1          uint8_t         ucBike[4];
+ 483      =1          uint16_t        uiVersion;
+ 484      =1          uint16_t        uiSysVoltage;
+ 485      =1          uint16_t        uiVolScale;
+ 486      =1          uint16_t        uiVolScale2;
+ 487      =1          uint16_t        uiTempScale;
+ 488      =1          uint16_t        uiSpeedScale;
+ 489      =1          uint16_t        uiYXT_SpeedScale;
+ 490      =1          uint16_t        uiSingleTrip;
+ 491      =1          uint32_t        ulMile;
+ 492      =1          uint8_t         ucSum;
+ 493      =1  } BIKE_CONFIG,*pBIKE_CONFIG;
+ 494      =1          
+ 495      =1  extern BIKE_STATUS xdata sBike;
+ 496      =1  extern BIKE_CONFIG xdata sConfig;
+ 497      =1  extern volatile uint16_t uiSysTick;
+ 498      =1  
+ 499      =1  uint16_t Get_SysTick(void);
+ 500      =1  uint16_t Get_ElapseTick(uint16_t uiPreTick);
+ 501      =1  int16_t NTCtoTemp(int16_t ntc);
+ 502      =1  void HotReset(void);
+ 503      =1  void WriteConfig(void);
+ 504      =1  void ResetConfig(void);
+ 505      =1  void InitConfig(void);
+ 506      =1  uint8_t GetBatStatus(uint16_t uiVol);
+ 507      =1  uint8_t GetBatEnergy(uint16_t uiVol);
+ 508      =1  uint8_t GetSpeedHall(void);
+ 509      =1  void LRFlashTask(void);
+ 510      =1  uint8_t MileSetupTask(void);
+ 511      =1  void MileTask(void);
+ 512      =1  uint8_t SpeedCaltTask(void);
+ 513      =1  void TimeTask(void);
+ 514      =1  void LRFlashTask(void);
+ 515      =1  void LightTask(void);
+ 516      =1  void exchange_sort16(uint16_t* pData,uint16_t Count);
+ 517      =1  uint16_t get_average16(uint16_t* dat, uint16_t len);
+ 518      =1  /******************************************************************************/
+ 519      =1  
+ 520      =1  #if ( PCB_VER == 0200 )
+           =1         #define BATV_ADC_CH             ADC1_CHANNEL_2
+           =1         #define BATV_ADC_SCH    ADC1_SCHMITTTRIG_CHANNEL2
+           =1 
+           =1         #define SPEEDV_ADC_CH   ADC1_CHANNEL_3
+           =1         #define SPEEDV_ADC_SCH  ADC1_SCHMITTTRIG_CHANNEL3
+           =1 
+           =1         #define SPEEDV_ADJ_CH   ADC1_CHANNEL_4
+           =1         #define SPEEDV_ADJ_SCH  ADC1_SCHMITTTRIG_CHANNEL4
+           =1         
+           =1         #define V72_PORT                GPIOD
+           =1         #define V72_PIN                 GPIO_PIN_5
+           =1         #define V48_PORT                GPIOD
+           =1         #define V48_PIN                 GPIO_PIN_4
+           =1 
+           =1         #define SPMODE1_PORT    GPIOA
+           =1         #define SPMODE1_PIN             GPIO_PIN_3
+           =1         #define SPMODE2_PORT    GPIOA
+           =1         #define SPMODE2_PIN             GPIO_PIN_2
+           =1         #define SPMODE3_PORT    GPIOA
+           =1         #define SPMODE3_PIN             GPIO_PIN_1
+           =1         //#define SPMODE4_PORT  GPIOA
+           =1         //#define SPMODE4_PIN           GPIO_PIN_3
+           =1         
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 10  
+
+           =1         #define CALI_PORT               SPMODE1_PORT
+           =1         #define CALI_PIN                SPMODE1_PIN
+           =1         
+           =1         #define NearLight_PORT  GPIOC
+           =1         #define NearLight_PIN   GPIO_PIN_7
+           =1         #define TurnRight_PORT  GPIOC
+           =1         #define TurnRight_PIN   GPIO_PIN_3
+           =1         #define TurnLeft_PORT   GPIOC
+           =1         #define TurnLeft_PIN    GPIO_PIN_5
+           =1         
+           =1         #define TM16XX_PORT     GPIOB
+           =1         #define TM16XX_CLK      GPIO_PIN_4
+           =1         #define TM16XX_DAT      GPIO_PIN_5
+           =1 
+           =1 #elif ( PCB_VER == 0100 )
+ 559      =1          #define BATV_ADC_CH             ADC1_CHANNEL_2
+ 560      =1          #define BATV_ADC_SCH    ADC1_SCHMITTTRIG_CHANNEL2
+ 561      =1  
+ 562      =1          #define SPEEDV_ADC_CH   ADC1_CHANNEL_3
+ 563      =1          #define SPEEDV_ADC_SCH  ADC1_SCHMITTTRIG_CHANNEL3
+ 564      =1  
+ 565      =1          #define V72_PORT                P0
+ 566      =1          #define V72_PIN                 1
+ 567      =1          #define V48_PORT                P1
+ 568      =1          #define V48_PIN                 2
+ 569      =1  
+ 570      =1          #define SPMODE1_PORT    P0
+ 571      =1          #define SPMODE1_PIN             0
+ 572      =1          #define SPMODE2_PORT    P1
+ 573      =1          #define SPMODE2_PIN             1
+ 574      =1          #define SPMODE3_PORT    P2
+ 575      =1          #define SPMODE3_PIN             2
+ 576      =1          #define SPMODE4_PORT    P3
+ 577      =1          #define SPMODE4_PIN             3
+ 578      =1          
+ 579      =1          #define CALI_PORT               SPMODE1_PORT
+ 580      =1          #define CALI_PIN                SPMODE1_PIN
+ 581      =1          
+ 582      =1          #define NearLight_PORT  P2
+ 583      =1          #define NearLight_PIN   1
+ 584      =1          #define TurnRight_PORT  P2
+ 585      =1          #define TurnRight_PIN   2
+ 586      =1          #define TurnLeft_PORT   P2
+ 587      =1          #define TurnLeft_PIN    3
+ 588      =1  
+ 589      =1  #elif ( PCB_VER == 0013 )
+           =1         #define BATV_ADC_CH             ADC1_CHANNEL_2
+           =1         #define BATV_ADC_SCH    ADC1_SCHMITTTRIG_CHANNEL2
+           =1 
+           =1         #define SPEEDV_ADC_CH   ADC1_CHANNEL_3
+           =1         #define SPEEDV_ADC_SCH  ADC1_SCHMITTTRIG_CHANNEL3
+           =1 
+           =1         #define SPEEDV_ADJ_CH   ADC1_CHANNEL_4
+           =1         #define SPEEDV_ADJ_SCH  ADC1_SCHMITTTRIG_CHANNEL4
+           =1 
+           =1         #define V72_PORT                GPIOD
+           =1         #define V72_PIN                 GPIO_PIN_4
+           =1         #define V48_PORT                GPIOD
+           =1         #define V48_PIN                 GPIO_PIN_5
+           =1 
+           =1         #define SPMODE1_PORT    GPIOA
+           =1         #define SPMODE1_PIN             GPIO_PIN_3
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 11  
+
+           =1         #define SPMODE2_PORT    GPIOA
+           =1         #define SPMODE2_PIN             GPIO_PIN_2
+           =1         #define SPMODE3_PORT    GPIOA
+           =1         #define SPMODE3_PIN             GPIO_PIN_1
+           =1 //      #define SPMODE4_PORT    
+           =1 //      #define SPMODE4_PIN             
+           =1         
+           =1         #define CALI_PORT               SPMODE1_PORT
+           =1         #define CALI_PIN                SPMODE1_PIN
+           =1         
+           =1         #define NearLight_PORT  GPIOC
+           =1         #define NearLight_PIN   GPIO_PIN_7
+           =1         #define TurnRight_PORT  GPIOC
+           =1         #define TurnRight_PIN   GPIO_PIN_3
+           =1         #define TurnLeft_PORT   GPIOC
+           =1         #define TurnLeft_PIN    GPIO_PIN_5
+           =1 #elif ( PCB_VER == 0041 )       //for LCD8794GCT
+           =1         #define BATV_ADC_CH             ADC1_CHANNEL_2
+           =1         #define BATV_ADC_SCH    ADC1_SCHMITTTRIG_CHANNEL2
+           =1 
+           =1         #define SPEEDV_ADC_CH   ADC1_CHANNEL_5
+           =1         #define SPEEDV_ADC_SCH  ADC1_SCHMITTTRIG_CHANNEL5
+           =1 
+           =1         #define SPMODE1_PORT    GPIOD
+           =1         #define SPMODE1_PIN             GPIO_PIN_4
+           =1         #define SPMODE2_PORT    GPIOA
+           =1         #define SPMODE2_PIN             GPIO_PIN_1
+           =1         #define SPMODE3_PORT    GPIOA
+           =1         #define SPMODE3_PIN             GPIO_PIN_2
+           =1         #define SPMODE4_PORT    GPIOA
+           =1         #define SPMODE4_PIN             GPIO_PIN_3
+           =1         
+           =1         #define CALI_PORT               SPMODE1_PORT
+           =1         #define CALI_PIN                SPMODE1_PIN
+           =1         
+           =1         #define NearLight_PORT  GPIOD
+           =1         #define NearLight_PIN   GPIO_PIN_3
+           =1         #define TurnRight_PORT  GPIOC
+           =1         #define TurnRight_PIN   GPIO_PIN_3
+           =1         #define TurnLeft_PORT   GPIOD
+           =1         #define TurnLeft_PIN    GPIO_PIN_2
+           =1 //      #define CRZLight_PORT   
+           =1 //      #define CRZLight_PIN    
+           =1         
+           =1         #define NearLightOut_PORT       GPIOC
+           =1         #define NearLightOut_PIN        GPIO_PIN_7
+           =1         #define TurnRightOut_PORT       GPIOC
+           =1         #define TurnRightOut_PIN        GPIO_PIN_5
+           =1         #define TurnLeftOut_PORT        GPIOD
+           =1         #define TurnLeftOut_PIN         GPIO_PIN_1      
+           =1 #elif ( PCB_VER == 201745UL )   //for LCD8794GCT
+           =1         #define BATV_ADC_CH             ADC1_CHANNEL_2
+           =1         #define BATV_ADC_SCH    ADC1_SCHMITTTRIG_CHANNEL2
+           =1 
+           =1         #define SPEEDV_ADC_CH   ADC1_CHANNEL_3
+           =1         #define SPEEDV_ADC_SCH  ADC1_SCHMITTTRIG_CHANNEL3
+           =1 
+           =1         #define SPEEDV_ADJ_CH   ADC1_CHANNEL_4
+           =1         #define SPEEDV_ADJ_SCH  ADC1_SCHMITTTRIG_CHANNEL4
+           =1 
+           =1         #define V48_PORT                GPIOD
+           =1         #define V48_PIN                 GPIO_PIN_5
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 12  
+
+           =1 
+           =1         #define SPMODE1_PORT    GPIOA
+           =1         #define SPMODE1_PIN             GPIO_PIN_3
+           =1         #define SPMODE2_PORT    GPIOA
+           =1         #define SPMODE2_PIN             GPIO_PIN_1
+           =1         #define SPMODE3_PORT    GPIOA
+           =1         #define SPMODE3_PIN             GPIO_PIN_2
+           =1         
+           =1         #define CALI_PORT               SPMODE1_PORT
+           =1         #define CALI_PIN                SPMODE1_PIN
+           =1         
+           =1         #define NearLight_PORT  GPIOC
+           =1         #define NearLight_PIN   GPIO_PIN_7
+           =1         #define TurnRight_PORT  GPIOD
+           =1         #define TurnRight_PIN   GPIO_PIN_4
+           =1         #define TurnLeft_PORT   GPIOC
+           =1         #define TurnLeft_PIN    GPIO_PIN_3
+           =1         
+           =1         #define POut_PORT               GPIOC
+           =1         #define POut_PIN                GPIO_PIN_5
+           =1 #elif ( PCB_VER == 9737 )
+           =1         #define BATV_ADC_CH             ADC1_CHANNEL_6
+           =1         #define BATV_ADC_SCH    ADC1_SCHMITTTRIG_CHANNEL6
+           =1 
+           =1         #define BATV_ADC_CH2    ADC1_CHANNEL_2
+           =1         #define BATV_ADC_SCH2   ADC1_SCHMITTTRIG_CHANNEL2
+           =1         
+           =1         #define SPEED_HALL_PORT GPIOC
+           =1         #define SPEED_HALL_PIN  GPIO_PIN_3
+           =1 
+           =1     #define SPEED_EXTI_PORT EXTI_PORT_GPIOC
+           =1 
+           =1         #define CALI_PORT               GPIOA
+           =1         #define CALI_PIN                GPIO_PIN_3
+           =1         
+           =1         #define NearLight_PORT  GPIOD
+           =1         #define NearLight_PIN   GPIO_PIN_4
+           =1         #define FarLight_PORT   GPIOD
+           =1         #define FarLight_PIN    GPIO_PIN_5
+           =1         #define OverSpeed_PORT  GPIOA
+           =1         #define OverSpeed_PIN   GPIO_PIN_3
+           =1         #define TurnRight_PORT  GPIOB
+           =1         #define TurnRight_PIN   GPIO_PIN_4
+           =1         #define TurnLeft_PORT   GPIOB
+           =1         #define TurnLeft_PIN    GPIO_PIN_5
+           =1 
+           =1         #define TM16XX_PORT             GPIOC
+           =1         #define TM16XX_CLK              GPIO_PIN_5
+           =1         #define TM16XX_DAT              GPIO_PIN_6
+           =1         #define TM16XX_CS               GPIO_PIN_7
+           =1 #endif
+ 719      =1  
+ 720      =1  #define INC_SYS_TICK()  uiSysTick++
+ 721      =1  
+ 722      =1  #define ContainOf(x)            (sizeof(x)/sizeof(x[0]))
+ 723      =1          
+ 724      =1  #define READ_TURN_LEFT()        GPIO_Read(TurnLeft_PORT , TurnLeft_PIN  )
+ 725      =1  #define READ_TURN_RIGHT()       GPIO_Read(TurnRight_PORT, TurnRight_PIN )
+ 726      =1  
+ 727      =1  #define FEED_DOG()                      
+ 728      =1  
+ 729      =1  #define DISABLE_INTERRUPTS()    EA = 0
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 13  
+
+ 730      =1  #define ENABLE_INTERRUPTS()             EA = 1
+ 731      =1  
+ 732      =1  #define LED_OFF()       P15 = 0
+ 733      =1  #define LED_ON()        P15 = 1
+ 734      =1  
+ 735      =1  /******************************************************************************/
+ 736      =1  
+ 737      =1  #endif
    2          
    3          #if ( defined LCD9040 ) || ( defined LCD5535 )
    4                  #include "display_9040.c"
+   1      =1  #include "stdlib.h"
+   1      =2  /*--------------------------------------------------------------------------
+   2      =2  STDLIB.H
+   3      =2  
+   4      =2  Standard functions.
+   5      =2  Copyright (c) 1988-2005 Keil Elektronik GmbH and Keil Software, Inc.
+   6      =2  All rights reserved.
+   7      =2  --------------------------------------------------------------------------*/
+   8      =2  
+   9      =2  #ifndef __STDLIB_H__
+  10      =2  #define __STDLIB_H__
+  11      =2  
+  12      =2  #ifndef _SIZE_T
+  13      =2   #define _SIZE_T
+  14      =2   typedef unsigned int size_t;
+  15      =2  #endif
+  16      =2  
+  17      =2  #ifndef NULL
+  18      =2   #define NULL ((void *) 0L)
+  19      =2  #endif
+  20      =2  
+  21      =2  #ifndef _WCHAR_T_DEFINED_
+  22      =2  #define _WCHAR_T_DEFINED_
+  23      =2  typedef char wchar_t;
+  24      =2  #endif
+  25      =2  
+  26      =2  #ifndef RAND_MAX
+  27      =2   #define RAND_MAX  32767u
+  28      =2  #endif
+  29      =2  
+  30      =2  #pragma SAVE
+  31      =2  #pragma REGPARMS
+  32      =2  
+  33      =2  extern int    abs  (int   val);
+  34      =2  extern long  labs  (long  val);
+  35      =2  
+  36      =2  extern float atof (char *s1);
+  37      =2  extern long  atol (char *s1);
+  38      =2  extern int   atoi (char *s1);
+  39      =2  extern int   rand ();
+  40      =2  extern void  srand (int);
+  41      =2  
+  42      =2  extern float         strtod  (char *, char **);
+  43      =2  extern long          strtol  (char *, char **, unsigned char);
+  44      =2  extern unsigned long strtoul (char *, char **, unsigned char);
+  45      =2  
+  46      =2  #define _MALLOC_MEM_    xdata
+  47      =2  
+  48      =2  extern void init_mempool          (void _MALLOC_MEM_ *p, unsigned int size);
+  49      =2  extern void _MALLOC_MEM_ *malloc  (unsigned int size);
+  50      =2  extern void free                  (void _MALLOC_MEM_ *p);
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 14  
+
+  51      =2  extern void _MALLOC_MEM_ *realloc (void _MALLOC_MEM_ *p, unsigned int size);
+  52      =2  extern void _MALLOC_MEM_ *calloc  (unsigned int size, unsigned int len);
+  53      =2  
+  54      =2  #pragma RESTORE
+  55      =2  
+  56      =2  #endif
+   2      =1  #include "bike.h"
+   1      =2  /**
+   2      =2    ******************************************************************************
+   3      =2    * @file    
+   4      =2    * @author  ahzzc@sina.com
+   5      =2    * @version V2.xx
+   6      =2    * @date    
+   7      =2    * @brief   
+   8      =2    ******************************************************************************
+   9      =2    * @Changlog
+  10      =2    * V2.35 - 20180104
+  11      =2    * 修改48V系统电量显示最后一格电压值从481到479；
+  12      =2    * 增加电压标定延时，等待电压稳定；
+  13      =2    * 修改霍尔速度处理方式；
+  14      =2    * 
+  15      =2    * V2.34 - 20171226
+  16      =2    * 改BAT_STATUS_xxV，在bike.h文件中定义；调整电压采样滤波效果；
+  17      =2    * 
+  18      =2    * V2.33 - 20171219
+  19      =2    * 改电量外框常亮，调整TM1640通讯速度；
+  20      =2    * 
+  21      =2    * V2.32 - 20171214
+  22      =2    * 完善对JINGPENG-12080的支持；
+  23      =2    * 
+  24      =2    * V2.31 - 20171214
+  25      =2    * 增加对JINGPENG-12080的支持；
+  26      =2    *
+  27      =2    * V2.30 - 20171201
+  28      =2    * 减小闪光器关闭时的判断时间，更改MileTask结构，优化显示效果；
+  29      =2    *
+  30      =2    * V2.29 - 20171128
+  31      =2    * 去除MileResetTask中对速度和刹车状态的判断；改正上电打右转时进入MileResetTask�
+             -��返回1，造成单次里程显示时间长的问题
+  32      =2    *
+  33      =2    * V2.28 - 20171128
+  34      =2    * 改正RESET_CONFIG时显示的功能，增加JIKE13050的Parking灯输出控制；
+  35      =2    *
+  36      =2    * V2.27 - 20171128
+  37      =2    * 增加RESET_CONFIGA功能，去掉程序检测到版本不一致时清空配置信息的功能；
+  38      =2    *
+  39      =2    * V2.26 - 20171128
+  40      =2    * 修改一线通函数每次调用后都更新速度，解决一线通状态下速度调整时闪烁的
+             -问题；
+  41      =2    * 改正了相电压状态下速度调整时显示异常的问题；
+  42      =2    * 
+  43      =2    * V2.25 - 20171127
+  44      =2    * 增加软件版本配置信息，当程序检测到版本不一致时清空配置信息；
+  45      =2    * 修改系统电压功能为预定义模式；
+  46      =2    * 增加PCB200的发行版本；
+  47      =2    * 
+  48      =2    * V2.24 - 20171125
+  49      =2    * 改正速度修正的问题；
+  50      =2    * 
+  51      =2    * V2.23 - 20171122
+  52      =2    * 改正左右转信号检测问题，MileResetTask问题，修改程序结构；
+  53      =2    * 
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 15  
+
+  54      =2    * V2.22 - 20171120
+  55      =2    * 增加对9040基本版本2.0PCB的支持、JIKE13050版本的支持
+  56      =2    * 增加相关设计文档
+  57      =2    * 
+  58      =2    * V2.21 - 20171102
+  59      =2    * 增加参数设置单次里程功能，可以通过开关操作进行设置；
+  60      =2    * 
+  61      =2    * V2.20 - 20171027
+  62      =2    * 统一清里程、速度设定的方法；兼容左右灯开关信号和闪光器信号；统一变量
+             -命名方式；
+  63      =2    * 
+  64      =2    * V2.13 - 20170921
+  65      =2    * 改正左右转闪光器信号的识别，MileResetTask,YXT_SpeedCaltTask两个功能可以更稳定�
+             -�作
+  66      =2    * 
+  67      =2    * V2.12 - 20170916
+  68      =2    * 按9040_5535型仪表软件设置要求-0914.docx进行更改
+  69      =2    * 增加MileResetTask,YXT_SpeedCaltTask两个功能．
+  70      =2    * 增加相电压速度时的调节功能，改下一线通电压时初始化的问题．
+  71      =2  
+  72      =2    * 
+  73      =2    * V2.11 - 20170909
+  74      =2    * 按9040_5535型仪表软件设置要求-0908.doc进行更改：
+  75      =2    * 1.  60/72V系统，电池图标对应电压值
+  76      =2    * 2.  无挡位输入时，相电压对应速度
+  77      =2    * 3.  计算累积里程时，设定的最高速度
+  78      =2    * 增加LCD9040_4860版本
+  79      =2    * 修改左右转灯为独立闪烁
+  80      =2    * 修改工程结构
+  81      =2    * 修正最高速度限制
+  82      =2    * 更改ＧetVol函数和程序结构使用电源快速开关过程中，仪表显示不变．
+  83      =2    * 开机全显时间改为２秒．
+  84      =2    *
+  85      =2    * V2.10 - 20170824
+  86      =2    * 修改总里程进行复位的方法：打右转灯，开机后10秒内开关大灯8次；
+  87      =2    * 左右转信号改回中断方式，适应闪光器；
+  88      =2    * 增加OUPAINONG四个版本的支持；
+  89      =2    * 改正OUPAINONG_6072版本的电压识别；
+  90      =2    *
+  91      =2    * V2.09 - 20170821
+  92      =2    * 增加了开机3秒内开关8次大灯对总里程进行复位的方法；
+  93      =2    * 左右转信号由中断改为程序扫描方式；
+  94      =2    * 增加批量编译功能；
+  95      =2    *
+  96      =2    * V2.08 - 20170817
+  97      =2    * 修改刹车图标显示方式，当YXT DATA2 BIT5 为1时显示刹车灯
+  98      =2    * 改正DENGGUAN_XUNYING_T、JINPENG_6072的速度标定
+  99      =2    * 优化程序空间
+ 100      =2    *
+ 101      =2    * V2.07
+ 102      =2    * 增加开机显示累计里程5秒，如果2秒后有速度则跳到显示单次里程
+ 103      =2    * 修正对一线通吉详方案的支持，数据高电平占空比放宽到15-42
+ 104      =2    *
+ 105      =2    * V2.06
+ 106      =2    * 改正标定时的异常
+ 107      =2    *
+ 108      =2    * V2.05
+ 109      =2    * 改正温度显示
+ 110      =2    *
+ 111      =2    * V2.04
+ 112      =2    * V2.02
+ 113      =2    * 统一各版本采用release进行定义
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 16  
+
+ 114      =2    * 增加金彭产品支持，JINPENG_4060、JINPENG_6072
+ 115      =2    * 删除对老PCB版本的支持，
+ 116      =2    *
+ 117      =2    * V2.01
+ 118      =2    * 一线通改为多协议同时支持；
+ 119      =2    * 速度分档修正；
+ 120      =2    *
+ 121      =2    * V2.00
+ 122      =2          * 功能：
+ 123      =2          * 1.系统电压通过MODE1,MODE2自动检测；
+ 124      =2          * 2.时钟功能自动检测，无芯片不显示；
+ 125      =2          * 3.通过左右转向进行时间调整模式；
+ 126      =2          * 4.通过串口可进行参数标定,  短接低速、SWIM信号进行参数标定；
+ 127      =2          * 5.参数保存于EEPROM;
+ 128      =2          * 6.一线通功能；
+ 129      =2          * 7.档位信息优先读取一线通数据，实现四档信息判断，一线通中断后采用档把�
+             -�据；
+ 130      =2          * 8.开启开门狗功能；
+ 131      =2          * 9.通过PCB_VER定义不同的硬件版本，支持0011、0012、0022、0041；
+ 132      =2          *10.通过YXT_XX定义不同的控制器版本；
+ 133      =2    *
+ 134      =2    ******************************************************************************
+ 135      =2    */
+ 136      =2  /******************************************************************************/
+ 137      =2  
+ 138      =2  #ifndef __BIKE_H__
+           =2 #define __BIKE_H__
+           =2 
+           =2 /******************************************************************************/
+           =2 //release define
+           =2 #define LCD9040
+           =2 //#define LCD9040_VD48H72L_ST
+           =2 //#define LCD9040_VD48H72N_ST
+           =2 //#define LCD9040_JP_45KM
+           =2 //#define JINPENG_4860
+           =2 //#define JINPENG_6072
+           =2 //#define JINPENG_9737
+           =2 //#define JINPENG_QD
+           =2 //#define LCD6040
+           =2 //#define LCD9040
+           =2 //#define LCD9040_4860
+           =2 //#define LCD9040T
+           =2 //#define JIKE13050
+           =2 //#define DENGGUAN_XUNYING              //DG55,BLSP55
+           =2 //#define DENGGUAN_XUNYING_T    //TDG55
+           =2 //#define BENLING_OUSHANG               //BL60_72
+           =2 //#define BENLING_BL48_60               //BL48_60
+           =2 //#define BENLING_ZHONGSHA              //BLV72
+           =2 //#define OUJUN                                 //M2_60_72
+           =2 //#define OUPAINONG_4860                //LCD9040_4860
+           =2 //#define OUPAINONG_6072                //LCD9040_6072
+           =2 //#define OUPAINONG_ADJ_4860    //LCD9040ADJ_4860
+           =2 //#define OUPAINONG_ADJ_6072    //LCD9040ADJ_6072
+           =2 /******************************************************************************/
+           =2 
+           =2 //#define SW_VER                                
+           =2 
+           =2 //#define SINGLE_TRIP   
+           =2 //#define LCD_SEG_TEST
+           =2 //#define RESET_CONFIG
+           =2 
+           =2 /******************************************************************************/
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 17  
+
+           =2 #define VOL_CALIBRATIOIN        600UL   //60.0V
+           =2 #define TEMP_CALIBRATIOIN       250UL   //25.0C
+           =2 
+           =2 #define PON_ALLON_TIME          2000UL  //2000ms
+           =2 
+           =2 #define DISPLAY_MAX_SPEED       45UL    //40km/h
+           =2 /******************************************************************************/
+           =2 
+           =2 #if defined LCD9040
+           =2         #define PCB_VER         0100
+           =2         //#define LCD9040
+           =2         #define TIME_ENABLE 0
+           =2         #define YXT_ENABLE  1                           
+           =2         #define VD72L48L        
+           =2 #elif defined LCD9040_ST
+           =2         #define PCB_VER         0200
+           =2         #define LCD9040
+           =2         #define TIME_ENABLE 0
+           =2         #define YXT_ENABLE  1                           
+           =2         #define VD72L48L        
+           =2         #define SINGLE_TRIP
+           =2 #elif defined LCD9040_VD48H72N_ST
+           =2         #define PCB_VER         0200
+           =2         #define LCD9040
+           =2         #define TIME_ENABLE 0
+           =2         #define YXT_ENABLE  1   
+           =2         #define VD48H72N        
+           =2         #define SINGLE_TRIP
+           =2 #elif defined LCD9040_JP_45KM
+           =2         #define PCB_VER         0200
+           =2         #define LCD9040
+           =2         #define TIME_ENABLE 0
+           =2         #define YXT_ENABLE  1   
+           =2         #define VD72L48L        
+           =2         #define SPEED_CALC_48V(spd) spd*1575UL/8192UL   /*24V->45KM/H*/
+           =2         #define SPEED_CALC_60V(spd) spd*315UL /2048UL   /*30V->45KM/H*/
+           =2         #define SPEED_CALC_72V(spd) spd*525UL /4096UL   /*36V->45KM/H*/
+           =2 #elif defined JIKE13050
+           =2         #define PCB_VER         201745UL
+           =2         #define LCD8794GCT
+           =2         #define TIME_ENABLE 0
+           =2         #define YXT_ENABLE  1
+           =2 //      #define VD48L72N        
+           =2         #define VD48N72L        
+           =2 #elif JINPENG_4860
+           =2         #define PCB_VER         0200
+           =2         #define LCD9040
+           =2         #define TIME_ENABLE 0
+           =2         #define YXT_ENABLE  1   
+           =2         #define VD48L72N
+           =2         #define SPEED_CALC_48V(spd) spd*1575UL/8192UL   /*24V->45KM/H*/
+           =2         #define SPEED_CALC_60V(spd) spd*315UL /2048UL   /*30V->45KM/H*/
+           =2         #define BAT_STATUS_48V          {420,426,432,439,445,451,457,464}
+           =2         #define BAT_STATUS_60V          {520,528,536,542,550,558,566,574}
+           =2         #define BAT_STATUS_72V          {0xFFFF}        
+           =2 #elif defined JINPENG_6072
+           =2         #define PCB_VER         0200
+           =2         #define LCD9040
+           =2         #define TIME_ENABLE 0
+           =2         #define YXT_ENABLE  1
+           =2         #define VD48N72L        
+           =2         #define SPEED_CALC_60V(spd) spd*1505UL/8192UL   /*24V->43KM/H*/
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 18  
+
+           =2         #define SPEED_CALC_72V(spd) spd*1505UL/12288UL  /*36V->43KM/H*/
+           =2         #define BAT_STATUS_48V          {0xFFFF}
+           =2         #define BAT_STATUS_60V          {480,493,506,519,532,545,558,570}
+           =2         #define BAT_STATUS_72V          {550,569,589,608,628,647,667,686}
+           =2 #elif defined JINPENG_9737
+           =2         #define PCB_VER         9737
+           =2         #define TM1624
+           =2         #define TIME_ENABLE 0
+           =2         #define YXT_ENABLE  0
+           =2         #define VD48    
+           =2         #define VOL_CALC(uiVol)         (uint32_t)uiVol*650UL/1024UL    /* 120K+10K */
+           =2         #define BAT_STATUS_48V          {300,410,438,464,490,516};
+           =2         #define BAT_STATUS_60V          {0xFFFF};
+           =2         #define BAT_STATUS_72V          {0xFFFF};
+           =2 
+           =2         #define PERIMETER                       2200UL  //mm
+           =2         #define PULSE_C                         56
+           =2 #elif defined JINPENG_QD
+           =2         #define PCB_VER         0200
+           =2         #define TM1640
+           =2         #define TIME_ENABLE 0
+           =2         #define YXT_ENABLE  1
+           =2         #define VD48L72N        
+           =2         #define SPEED_CALC_48V(spd) spd*1575UL/8192UL   /*24V->45KM/H*/
+           =2         #define SPEED_CALC_60V(spd) spd*315UL /2048UL   /*30V->45KM/H*/
+           =2         #define BAT_STATUS_48V          {420,426,433,440,447,454,462,470};
+           =2         #define BAT_STATUS_60V          {520,528,537,546,555,563,571,579};
+           =2         #define BAT_STATUS_72V          {0xFFFF};
+           =2 #elif defined LCD9040_4860
+           =2         #define PCB_VER         0200
+           =2         #define LCD9040
+           =2         #define TIME_ENABLE 0
+           =2         #define YXT_ENABLE  1   
+           =2         #define VD48H72L        
+           =2         #define SINGLE_TRIP
+           =2 #elif defined LCD9040T
+           =2         #define PCB_VER         0200
+           =2         #define LCD9040
+           =2         #define TIME_ENABLE 1
+           =2         #define YXT_ENABLE  1                           
+           =2         #define VD72L48L        
+           =2 #elif defined LCD6040
+           =2         #define PCB_VER         0200
+           =2         //#define LCD6040
+           =2         #define TIME_ENABLE 0
+           =2         #define YXT_ENABLE  1                           
+           =2         #define VD72L48L        
+           =2         #define BAT_STATUS_48V {425,432,444,456,468};
+           =2         #define BAT_STATUS_60V {525,537,553,566,578};
+           =2         #define BAT_STATUS_72V {630,641,661,681,701};
+           =2 #elif defined DENGGUAN_XUNYING
+           =2         #define PCB_VER         0200
+           =2         #define LCD9040
+           =2         #define TIME_ENABLE 0
+           =2         #define YXT_ENABLE  1
+           =2         #define VD72L48L        
+           =2 #elif defined DENGGUAN_XUNYING_T
+           =2         #define PCB_VER         0200
+           =2         #define LCD9040
+           =2         #define TIME_ENABLE 1
+           =2         #define YXT_ENABLE  0
+           =2         #define VD72L48L        
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 19  
+
+           =2 #elif defined BENLING_OUSHANG
+           =2         #define PCB_VER         0200
+           =2         #define LCD9040
+           =2         #define TIME_ENABLE 0
+           =2         #define YXT_ENABLE  1
+           =2         #define VD72L48L        
+           =2 #elif defined BENLING_BL48_60
+           =2         #define PCB_VER         0200
+           =2         #define LCD9040
+           =2         #define TIME_ENABLE 0
+           =2         #define YXT_ENABLE  1
+           =2         #define VD72L48L        
+           =2 #elif defined BENLING_ZHONGSHA
+           =2         #define PCB_VER         0200
+           =2         #define LCD9040
+           =2         #define TIME_ENABLE 0
+           =2         #define YXT_ENABLE  1
+           =2         #define VD72
+           =2 #elif defined OUJUN
+           =2         #define PCB_VER         0200
+           =2         #define LCD9040
+           =2         #define TIME_ENABLE 0
+           =2         #define YXT_ENABLE  1
+           =2         #define VD48N72L
+           =2 #elif defined OUPAINONG_4860
+           =2         #define PCB_VER         0200
+           =2         #define LCD5535
+           =2         #define TIME_ENABLE 0
+           =2         #define YXT_ENABLE  1                           
+           =2         #define VD48L72N        
+           =2         #define SPEED_CALC_48V(spd) spd*57750UL/242688UL        /*23.7V->55KM/H*/
+           =2         #define SPEED_CALC_60V(spd) spd*63000UL/258048UL        /*25.2V->60KM/H*/
+           =2 #elif defined OUPAINONG_6072
+           =2         #define PCB_VER         0200
+           =2         #define LCD5535
+           =2         #define TIME_ENABLE 0
+           =2         #define YXT_ENABLE  1                           
+           =2         #define VD48N72L        
+           =2         #define SPEED_CALC_60V(spd) spd*68250UL/339968UL        /*33.2V->65KM/H*/
+           =2         #define SPEED_CALC_72V(spd) spd*68250UL/339968UL        /*33.2V->65KM/H*/
+           =2 #elif defined OUPAINONG_ADJ_4860
+           =2         #define PCB_VER         0013
+           =2         #define LCD5535
+           =2         #define TIME_ENABLE 0
+           =2         #define YXT_ENABLE  1                           
+           =2         #define VD72L48L        
+           =2 #elif defined OUPAINONG_ADJ_6072
+           =2         #define PCB_VER         0013
+           =2         #define LCD5535
+           =2         #define TIME_ENABLE 0
+           =2         #define YXT_ENABLE  1                           
+           =2         #define VD72L48L        
+           =2 #else
+           =2         #error "Please select a release!!!"
+           =2 #endif
+           =2 
+           =2 /******************************************************************************/
+           =2 #ifndef PCB_VER
+           =2         #define PCB_VER 0200
+           =2 #endif
+           =2 
+           =2 #ifndef TIME_ENABLE
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 20  
+
+           =2         #define TIME_ENABLE     0                               
+           =2 #endif
+           =2 
+           =2 #ifndef YXT_ENABLE
+           =2         #define YXT_ENABLE      1                               
+           =2 #endif
+           =2 
+           =2 // spd*5V*(200+10)/10/1024/fullV*fullSpeed      /*200k+10k*/
+           =2 #ifndef SPEED_CALC_48V
+           =2 #define SPEED_CALC_48V(spd) spd*1925UL/8192UL   /*200k+10k 24V->55KM/H*/
+           =2 #endif
+           =2 
+           =2 #ifndef SPEED_CALC_60V
+           =2 #define SPEED_CALC_60V(spd) spd*385UL /2048UL;  /*200k+10k 30V->55KM/H*/
+           =2 #endif
+           =2 
+           =2 #ifndef SPEED_CALC_72V
+           =2 #define SPEED_CALC_72V(spd) spd*1925UL/12288UL  /*200k+10k 36V->55KM/H*/
+           =2 #endif
+           =2 
+           =2 // uiVol = (uint32_t)uiVol / 1024UL / 10 * (200+10) * 5 * 10;   /* 200k+10k */
+           =2 #ifndef VOL_CALC
+           =2 #define VOL_CALC(uiVol) (uint32_t)uiVol*1050UL/1024UL   /* 200k+10k */
+           =2 #endif
+           =2 
+           =2 #ifndef BAT_STATUS_48V
+           =2 //#define BAT_STATUS_48V {420,427,435,444,453,462,471,481}
+           =2 #define BAT_STATUS_48V {420,427,435,444,453,462,471,479}        /*20180104*/
+           =2 #endif
+           =2 
+           =2 #ifndef BAT_STATUS_60V
+           =2 #define BAT_STATUS_60V {520,531,544,556,568,577,587,595}
+           =2 #endif
+           =2 
+           =2 #ifndef BAT_STATUS_72V
+           =2 #define BAT_STATUS_72V {630,642,653,664,675,687,700,715}
+           =2 #endif
+           =2 
+           =2 /******************************************************************************/
+           =2 
+           =2 
+           =2 #define TASK_INIT       0
+           =2 #define TASK_STEP1      1
+           =2 #define TASK_STEP2      2
+           =2 #define TASK_STEP3      3
+           =2 #define TASK_STEP4      4
+           =2 #define TASK_EXIT       0xFF
+           =2 
+           =2 #define GPIO_QUASI              0
+           =2 #define GPIO_PUSH_PULL  1
+           =2 #define GPIO_INPUT_ONLY 2
+           =2 #define GPIO_OPEN_DRAIN 3
+           =2 
+           =2 #define RESET   0
+           =2 #define SET             1
+           =2 
+           =2 
+           =2 /******************************************************************************/
+           =2 #define uint8_t         unsigned char
+           =2 #define uint16_t        unsigned int
+           =2 #define uint32_t        unsigned long
+           =2 
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 21  
+
+           =2 #define int8_t          signed char
+           =2 #define int16_t         signed int
+           =2 #define int32_t         signed long
+           =2 
+           =2 /******************************************************************************/
+           =2 typedef struct {
+           =2     uint8_t bLFlashType :1;
+           =2     uint8_t bRFlashType :1;
+           =2     uint8_t bLeftFlash  :1;     
+           =2     uint8_t bRightFlash :1;     
+           =2     uint8_t bTurnLeft   :1;
+           =2     uint8_t bTurnRight  :1;
+           =2         uint8_t bNearLight      :1;
+           =2         uint8_t bLastNear       :1;
+           =2 
+           =2         uint8_t bFarLight       :1;
+           =2         uint8_t bOverSpeed      :1;
+           =2         uint8_t bHotReset       :1;     
+           =2     uint8_t bLcdFresh   :1;
+           =2         uint8_t bMileFlash      :1;     
+           =2         uint8_t bSpeedFlash     :1;     
+           =2         uint8_t bYXTERR         :1;
+           =2         uint8_t bCruise         :1;
+           =2     
+           =2         uint8_t bBraked         :1;
+           =2         uint8_t bECUERR         :1;
+           =2         uint8_t bPhaseERR       :1;
+           =2         uint8_t bHallERR        :1;
+           =2         uint8_t bWheelERR       :1;
+           =2         uint8_t bECO            :1;
+           =2         uint8_t bRCHG           :1;
+           =2         uint8_t bParking        :1;
+           =2         
+           =2         uint8_t bHasTimer       :1;
+           =2         uint8_t bUart           :1;     
+           =2         uint8_t bTimeSet        :1;
+           =2         uint8_t bBT                     :1;
+           =2     
+           =2         uint8_t         ucSpeedMode;
+           =2         signed int      siTemperature;
+           =2         uint16_t        uiBatVoltage;
+           =2         uint16_t        uiBatVoltage2;
+           =2         uint8_t         ucSpeed;
+           =2         uint8_t         ucPHA_Speed;
+           =2         uint8_t         ucYXT_Speed;
+           =2         uint32_t        ulMile;
+           =2         uint32_t        ulFMile;
+           =2         uint16_t        uiTick;
+           =2         uint16_t        uiHallCounter;
+           =2         uint16_t        uiHallCounter_250ms;
+           =2         
+           =2         uint8_t         ucHour;
+           =2         uint8_t         ucMinute;
+           =2         uint8_t         ucSecond;
+           =2         uint8_t         ucTimePos;
+           =2         
+           =2 } BIKE_STATUS,*pBIKE_STATUS;
+           =2         
+           =2 typedef struct {
+           =2         uint8_t         ucBike[4];
+           =2         uint16_t        uiVersion;
+           =2         uint16_t        uiSysVoltage;
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 22  
+
+           =2         uint16_t        uiVolScale;
+           =2         uint16_t        uiVolScale2;
+           =2         uint16_t        uiTempScale;
+           =2         uint16_t        uiSpeedScale;
+           =2         uint16_t        uiYXT_SpeedScale;
+           =2         uint16_t        uiSingleTrip;
+           =2         uint32_t        ulMile;
+           =2         uint8_t         ucSum;
+           =2 } BIKE_CONFIG,*pBIKE_CONFIG;
+           =2         
+           =2 extern BIKE_STATUS xdata sBike;
+           =2 extern BIKE_CONFIG xdata sConfig;
+           =2 extern volatile uint16_t uiSysTick;
+           =2 
+           =2 uint16_t Get_SysTick(void);
+           =2 uint16_t Get_ElapseTick(uint16_t uiPreTick);
+           =2 int16_t NTCtoTemp(int16_t ntc);
+           =2 void HotReset(void);
+           =2 void WriteConfig(void);
+           =2 void ResetConfig(void);
+           =2 void InitConfig(void);
+           =2 uint8_t GetBatStatus(uint16_t uiVol);
+           =2 uint8_t GetBatEnergy(uint16_t uiVol);
+           =2 uint8_t GetSpeedHall(void);
+           =2 void LRFlashTask(void);
+           =2 uint8_t MileSetupTask(void);
+           =2 void MileTask(void);
+           =2 uint8_t SpeedCaltTask(void);
+           =2 void TimeTask(void);
+           =2 void LRFlashTask(void);
+           =2 void LightTask(void);
+           =2 void exchange_sort16(uint16_t* pData,uint16_t Count);
+           =2 uint16_t get_average16(uint16_t* dat, uint16_t len);
+           =2 /******************************************************************************/
+           =2 
+           =2 #if ( PCB_VER == 0200 )
+           =2         #define BATV_ADC_CH             ADC1_CHANNEL_2
+           =2         #define BATV_ADC_SCH    ADC1_SCHMITTTRIG_CHANNEL2
+           =2 
+           =2         #define SPEEDV_ADC_CH   ADC1_CHANNEL_3
+           =2         #define SPEEDV_ADC_SCH  ADC1_SCHMITTTRIG_CHANNEL3
+           =2 
+           =2         #define SPEEDV_ADJ_CH   ADC1_CHANNEL_4
+           =2         #define SPEEDV_ADJ_SCH  ADC1_SCHMITTTRIG_CHANNEL4
+           =2         
+           =2         #define V72_PORT                GPIOD
+           =2         #define V72_PIN                 GPIO_PIN_5
+           =2         #define V48_PORT                GPIOD
+           =2         #define V48_PIN                 GPIO_PIN_4
+           =2 
+           =2         #define SPMODE1_PORT    GPIOA
+           =2         #define SPMODE1_PIN             GPIO_PIN_3
+           =2         #define SPMODE2_PORT    GPIOA
+           =2         #define SPMODE2_PIN             GPIO_PIN_2
+           =2         #define SPMODE3_PORT    GPIOA
+           =2         #define SPMODE3_PIN             GPIO_PIN_1
+           =2         //#define SPMODE4_PORT  GPIOA
+           =2         //#define SPMODE4_PIN           GPIO_PIN_3
+           =2         
+           =2         #define CALI_PORT               SPMODE1_PORT
+           =2         #define CALI_PIN                SPMODE1_PIN
+           =2         
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 23  
+
+           =2         #define NearLight_PORT  GPIOC
+           =2         #define NearLight_PIN   GPIO_PIN_7
+           =2         #define TurnRight_PORT  GPIOC
+           =2         #define TurnRight_PIN   GPIO_PIN_3
+           =2         #define TurnLeft_PORT   GPIOC
+           =2         #define TurnLeft_PIN    GPIO_PIN_5
+           =2         
+           =2         #define TM16XX_PORT     GPIOB
+           =2         #define TM16XX_CLK      GPIO_PIN_4
+           =2         #define TM16XX_DAT      GPIO_PIN_5
+           =2 
+           =2 #elif ( PCB_VER == 0100 )
+           =2         #define BATV_ADC_CH             ADC1_CHANNEL_2
+           =2         #define BATV_ADC_SCH    ADC1_SCHMITTTRIG_CHANNEL2
+           =2 
+           =2         #define SPEEDV_ADC_CH   ADC1_CHANNEL_3
+           =2         #define SPEEDV_ADC_SCH  ADC1_SCHMITTTRIG_CHANNEL3
+           =2 
+           =2         #define V72_PORT                P0
+           =2         #define V72_PIN                 1
+           =2         #define V48_PORT                P1
+           =2         #define V48_PIN                 2
+           =2 
+           =2         #define SPMODE1_PORT    P0
+           =2         #define SPMODE1_PIN             0
+           =2         #define SPMODE2_PORT    P1
+           =2         #define SPMODE2_PIN             1
+           =2         #define SPMODE3_PORT    P2
+           =2         #define SPMODE3_PIN             2
+           =2         #define SPMODE4_PORT    P3
+           =2         #define SPMODE4_PIN             3
+           =2         
+           =2         #define CALI_PORT               SPMODE1_PORT
+           =2         #define CALI_PIN                SPMODE1_PIN
+           =2         
+           =2         #define NearLight_PORT  P2
+           =2         #define NearLight_PIN   1
+           =2         #define TurnRight_PORT  P2
+           =2         #define TurnRight_PIN   2
+           =2         #define TurnLeft_PORT   P2
+           =2         #define TurnLeft_PIN    3
+           =2 
+           =2 #elif ( PCB_VER == 0013 )
+           =2         #define BATV_ADC_CH             ADC1_CHANNEL_2
+           =2         #define BATV_ADC_SCH    ADC1_SCHMITTTRIG_CHANNEL2
+           =2 
+           =2         #define SPEEDV_ADC_CH   ADC1_CHANNEL_3
+           =2         #define SPEEDV_ADC_SCH  ADC1_SCHMITTTRIG_CHANNEL3
+           =2 
+           =2         #define SPEEDV_ADJ_CH   ADC1_CHANNEL_4
+           =2         #define SPEEDV_ADJ_SCH  ADC1_SCHMITTTRIG_CHANNEL4
+           =2 
+           =2         #define V72_PORT                GPIOD
+           =2         #define V72_PIN                 GPIO_PIN_4
+           =2         #define V48_PORT                GPIOD
+           =2         #define V48_PIN                 GPIO_PIN_5
+           =2 
+           =2         #define SPMODE1_PORT    GPIOA
+           =2         #define SPMODE1_PIN             GPIO_PIN_3
+           =2         #define SPMODE2_PORT    GPIOA
+           =2         #define SPMODE2_PIN             GPIO_PIN_2
+           =2         #define SPMODE3_PORT    GPIOA
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 24  
+
+           =2         #define SPMODE3_PIN             GPIO_PIN_1
+           =2 //      #define SPMODE4_PORT    
+           =2 //      #define SPMODE4_PIN             
+           =2         
+           =2         #define CALI_PORT               SPMODE1_PORT
+           =2         #define CALI_PIN                SPMODE1_PIN
+           =2         
+           =2         #define NearLight_PORT  GPIOC
+           =2         #define NearLight_PIN   GPIO_PIN_7
+           =2         #define TurnRight_PORT  GPIOC
+           =2         #define TurnRight_PIN   GPIO_PIN_3
+           =2         #define TurnLeft_PORT   GPIOC
+           =2         #define TurnLeft_PIN    GPIO_PIN_5
+           =2 #elif ( PCB_VER == 0041 )       //for LCD8794GCT
+           =2         #define BATV_ADC_CH             ADC1_CHANNEL_2
+           =2         #define BATV_ADC_SCH    ADC1_SCHMITTTRIG_CHANNEL2
+           =2 
+           =2         #define SPEEDV_ADC_CH   ADC1_CHANNEL_5
+           =2         #define SPEEDV_ADC_SCH  ADC1_SCHMITTTRIG_CHANNEL5
+           =2 
+           =2         #define SPMODE1_PORT    GPIOD
+           =2         #define SPMODE1_PIN             GPIO_PIN_4
+           =2         #define SPMODE2_PORT    GPIOA
+           =2         #define SPMODE2_PIN             GPIO_PIN_1
+           =2         #define SPMODE3_PORT    GPIOA
+           =2         #define SPMODE3_PIN             GPIO_PIN_2
+           =2         #define SPMODE4_PORT    GPIOA
+           =2         #define SPMODE4_PIN             GPIO_PIN_3
+           =2         
+           =2         #define CALI_PORT               SPMODE1_PORT
+           =2         #define CALI_PIN                SPMODE1_PIN
+           =2         
+           =2         #define NearLight_PORT  GPIOD
+           =2         #define NearLight_PIN   GPIO_PIN_3
+           =2         #define TurnRight_PORT  GPIOC
+           =2         #define TurnRight_PIN   GPIO_PIN_3
+           =2         #define TurnLeft_PORT   GPIOD
+           =2         #define TurnLeft_PIN    GPIO_PIN_2
+           =2 //      #define CRZLight_PORT   
+           =2 //      #define CRZLight_PIN    
+           =2         
+           =2         #define NearLightOut_PORT       GPIOC
+           =2         #define NearLightOut_PIN        GPIO_PIN_7
+           =2         #define TurnRightOut_PORT       GPIOC
+           =2         #define TurnRightOut_PIN        GPIO_PIN_5
+           =2         #define TurnLeftOut_PORT        GPIOD
+           =2         #define TurnLeftOut_PIN         GPIO_PIN_1      
+           =2 #elif ( PCB_VER == 201745UL )   //for LCD8794GCT
+           =2         #define BATV_ADC_CH             ADC1_CHANNEL_2
+           =2         #define BATV_ADC_SCH    ADC1_SCHMITTTRIG_CHANNEL2
+           =2 
+           =2         #define SPEEDV_ADC_CH   ADC1_CHANNEL_3
+           =2         #define SPEEDV_ADC_SCH  ADC1_SCHMITTTRIG_CHANNEL3
+           =2 
+           =2         #define SPEEDV_ADJ_CH   ADC1_CHANNEL_4
+           =2         #define SPEEDV_ADJ_SCH  ADC1_SCHMITTTRIG_CHANNEL4
+           =2 
+           =2         #define V48_PORT                GPIOD
+           =2         #define V48_PIN                 GPIO_PIN_5
+           =2 
+           =2         #define SPMODE1_PORT    GPIOA
+           =2         #define SPMODE1_PIN             GPIO_PIN_3
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 25  
+
+           =2         #define SPMODE2_PORT    GPIOA
+           =2         #define SPMODE2_PIN             GPIO_PIN_1
+           =2         #define SPMODE3_PORT    GPIOA
+           =2         #define SPMODE3_PIN             GPIO_PIN_2
+           =2         
+           =2         #define CALI_PORT               SPMODE1_PORT
+           =2         #define CALI_PIN                SPMODE1_PIN
+           =2         
+           =2         #define NearLight_PORT  GPIOC
+           =2         #define NearLight_PIN   GPIO_PIN_7
+           =2         #define TurnRight_PORT  GPIOD
+           =2         #define TurnRight_PIN   GPIO_PIN_4
+           =2         #define TurnLeft_PORT   GPIOC
+           =2         #define TurnLeft_PIN    GPIO_PIN_3
+           =2         
+           =2         #define POut_PORT               GPIOC
+           =2         #define POut_PIN                GPIO_PIN_5
+           =2 #elif ( PCB_VER == 9737 )
+           =2         #define BATV_ADC_CH             ADC1_CHANNEL_6
+           =2         #define BATV_ADC_SCH    ADC1_SCHMITTTRIG_CHANNEL6
+           =2 
+           =2         #define BATV_ADC_CH2    ADC1_CHANNEL_2
+           =2         #define BATV_ADC_SCH2   ADC1_SCHMITTTRIG_CHANNEL2
+           =2         
+           =2         #define SPEED_HALL_PORT GPIOC
+           =2         #define SPEED_HALL_PIN  GPIO_PIN_3
+           =2 
+           =2     #define SPEED_EXTI_PORT EXTI_PORT_GPIOC
+           =2 
+           =2         #define CALI_PORT               GPIOA
+           =2         #define CALI_PIN                GPIO_PIN_3
+           =2         
+           =2         #define NearLight_PORT  GPIOD
+           =2         #define NearLight_PIN   GPIO_PIN_4
+           =2         #define FarLight_PORT   GPIOD
+           =2         #define FarLight_PIN    GPIO_PIN_5
+           =2         #define OverSpeed_PORT  GPIOA
+           =2         #define OverSpeed_PIN   GPIO_PIN_3
+           =2         #define TurnRight_PORT  GPIOB
+           =2         #define TurnRight_PIN   GPIO_PIN_4
+           =2         #define TurnLeft_PORT   GPIOB
+           =2         #define TurnLeft_PIN    GPIO_PIN_5
+           =2 
+           =2         #define TM16XX_PORT             GPIOC
+           =2         #define TM16XX_CLK              GPIO_PIN_5
+           =2         #define TM16XX_DAT              GPIO_PIN_6
+           =2         #define TM16XX_CS               GPIO_PIN_7
+           =2 #endif
+           =2 
+           =2 #define INC_SYS_TICK()  uiSysTick++
+           =2 
+           =2 #define ContainOf(x)            (sizeof(x)/sizeof(x[0]))
+           =2         
+           =2 #define READ_TURN_LEFT()        GPIO_Read(TurnLeft_PORT , TurnLeft_PIN  )
+           =2 #define READ_TURN_RIGHT()       GPIO_Read(TurnRight_PORT, TurnRight_PIN )
+           =2 
+           =2 #define FEED_DOG()                      
+           =2 
+           =2 #define DISABLE_INTERRUPTS()    EA = 0
+           =2 #define ENABLE_INTERRUPTS()             EA = 1
+           =2 
+           =2 #define LED_OFF()       P15 = 0
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 26  
+
+           =2 #define LED_ON()        P15 = 1
+           =2 
+           =2 /******************************************************************************/
+           =2 
+           =2 #endif
+   3      =1  #include "bl55072.h"
+   1      =2  #ifndef __BL55072_H__
+   2      =2  #define __BL55072_H__
+   3      =2  
+   4      =2  
+   5      =2  
+   6      =2  typedef enum {
+   7      =2    
+   8      =2    BL_DISABLE = 0, 
+   9      =2    BL_ENABLE = !BL_DISABLE
+  10      =2      
+  11      =2  } BLState;
+  12      =2  
+  13      =2  typedef enum {
+  14      =2    
+  15      =2          Alloff = 0,
+  16      =2          AllOn  = 1
+  17      =2            
+  18      =2  } BLAllPixel_TypeDef;
+  19      =2  
+  20      =2  typedef enum {
+  21      =2  
+  22      =2          DispOff = 0,
+  23      =2          DispOn  = 1
+  24      =2            
+  25      =2  } BLDispMode_TypeDef;
+  26      =2  
+  27      =2  typedef enum{
+  28      =2    
+  29      =2          OneThirdOfBias = 0,
+  30      =2          OneHalfOfBias = 1
+  31      =2            
+  32      =2  } BLBias_TypeDef;
+  33      =2  
+  34      =2  typedef enum {
+  35      =2    
+  36      =2          BL_FrameFreq_80Hz = 0,
+  37      =2          BL_FrameFreq_71Hz = 1,
+  38      =2          BL_FrameFreq_64Hz = 2,
+  39      =2          BL_FrameFreq_50Hz = 3
+  40      =2            
+  41      =2  } BLFrameFreq_TypeDef;
+  42      =2  
+  43      =2  typedef enum {
+  44      =2    
+  45      =2          LineInversion = 0,
+  46      =2          FrameInversion = 1
+  47      =2            
+  48      =2  } BLDriveMode_TypeDef;
+  49      =2  
+  50      =2  typedef enum {
+  51      =2    
+  52      =2          PowerSaveMode1 = 0,
+  53      =2          PowerSaveMode2 = 1,
+  54      =2          NormalMode = 2,
+  55      =2          HighPowerMode = 3
+  56      =2            
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 27  
+
+  57      =2  } BL_PowerSave_TypeDef;
+  58      =2  
+  59      =2  typedef enum {
+  60      =2    
+  61      =2          InnerOsc = 0,
+  62      =2          OutsideOsc = 1
+  63      =2            
+  64      =2  } BL_OscMode_TypeDef;
+  65      =2  
+  66      =2  typedef enum {
+  67      =2    
+  68      =2          BlinkingOff = 0,
+  69      =2          Blinking0_25Hz =1,
+  70      =2          Blinking0_50Hz = 2,
+  71      =2          Blinking1_00Hz = 3
+  72      =2            
+  73      =2  } BL_Blinking_TypeDef;
+  74      =2  
+  75      =2  typedef struct
+  76      =2  {
+  77      =2    
+  78      =2          /*MODE SET Register*/
+  79      =2          BLDispMode_TypeDef BL_DispMode;
+  80      =2          BLBias_TypeDef BL_Bias;
+  81      =2          /*DISCTL Register*/
+  82      =2          BLFrameFreq_TypeDef BL_FrameFreq;
+  83      =2          BLDriveMode_TypeDef BL_DriveMode;
+  84      =2          BL_PowerSave_TypeDef BL_PowerSave;
+  85      =2          /*ICSET Register*/
+  86      =2          BLState BL_SoftResetCmd;
+  87      =2          BL_OscMode_TypeDef BL_OscMode;
+  88      =2          /*BLKCTL*/
+  89      =2          BL_Blinking_TypeDef Bl_Blinking;
+  90      =2          /*APCTL*/
+  91      =2          BLState BL_AllPixelOnCmd;
+  92      =2          BLState BL_AllPixelOffCmd;
+  93      =2          
+  94      =2  } BL_InitTypeDef;
+  95      =2  
+  96      =2  #define REG_MODE_SET_DEFAULT  (unsigned char)(0xC0)
+  97      =2  #define REG_ADSET_DEFAULT     (unsigned char)(0x00)
+  98      =2  #define REG_DISCTL_DEFAULT    (unsigned char)(0xE2)
+  99      =2  #define REG_ICSET_DEFAULT     (unsigned char)(0xE8)
+ 100      =2  #define REG_BLKCTL_DEFAULT    (unsigned char)(0xF0)
+ 101      =2  #define REG_APCTL_DEFAULT     (unsigned char)(0xFC)
+ 102      =2  #define BL_ADDR               (unsigned char)(0x7C)
+ 103      =2  #define BL_TIMEOUT            (uint16_t)(0x1000)
+ 104      =2  
+ 105      =2  void BL55072_Config(unsigned char status);
+ 106      =2  unsigned char BL_Write_Data(unsigned char ADSTART,unsigned char LEN,unsigned char * p);
+ 107      =2  unsigned char I2C_WriteBuf(unsigned char chip,unsigned char* buf, unsigned char len);
+ 108      =2  unsigned char I2C_ReadBuf(unsigned char chip,unsigned char addr,unsigned char* buf, unsigned char len);
+ 109      =2  #endif
+   4      =1  
+   5      =1  unsigned char BL_Data[19];
+   6      =1  unsigned char flashflag = 0;
+   7      =1  
+   8      =1  const unsigned char SegDataTime[10]     = {0xF5,0x60,0xD3,0xF2,0x66,0xB6,0xB7,0xE0,0xF7,0xF6};
+   9      =1  const unsigned char SegDataVoltage[10]  = {0xF5,0x05,0xD3,0x97,0x27,0xB6,0xF6,0x15,0xF7,0xB7};
+  10      =1  const unsigned char SegDataMile[10]     = {0xFA,0x0A,0xD6,0x9E,0x2E,0xBC,0xFC,0x1A,0xFE,0xBE};
+  11      =1  const unsigned char SegDataMile2[10]    = {0xAF,0xA0,0x6D,0xE9,0xE2,0xCB,0xCF,0xA1,0xEF,0xEB};
+  12      =1  const unsigned char SegDataSpeed[10]    = {0x5F,0x06,0x6B,0x2F,0x36,0x3D,0x7D,0x07,0x7F,0x3F};
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 28  
+
+  13      =1  const unsigned char SegDataTemp[10]     = {0xFA,0x0A,0xBC,0x9E,0x4E,0xD6,0xF6,0x8A,0xFE,0xDE};
+  14      =1  
+  15      =1  void Display(BIKE_STATUS* bike)
+  16      =1  {
+  17   1  =1          unsigned char i = 0;
+  18   1  =1    
+  19   1  =1          flashflag++;
+  20   1  =1          flashflag %= 10;
+  21   1  =1          
+  22   1  =1          for(i=0;i<18;i++)       BL_Data[i] = 0x00;
+  23   1  =1          
+  24   1  =1      if( bike->bLFlashType || flashflag >= 5 ) { if ( bike->bLeftFlash   ) BL_Data[6] |= 0x08; } //S1
+  25   1  =1      if( bike->bRFlashType || flashflag >= 5 ) { if ( bike->bRightFlash  ) BL_Data[15]|= 0x80; } //S9
+  26   1  =1          if( bike->bCruise               ) BL_Data[5] |= 0x02;   //S4
+  27   1  =1          if( bike->bNearLight    ) BL_Data[5] |= 0x01;   //S5
+  28   1  =1          if( bike->bHallERR              ) BL_Data[5] |= 0x08;   //S2    电机霍尔故障
+  29   1  =1          if( bike->bWheelERR     ) BL_Data[5] |= 0x04;   //S3    手把故障
+  30   1  =1          if( bike->bECUERR               ) BL_Data[15]|= 0x20;   //S7    电机控制器故障
+  31   1  =1          //if( bike->bPhaseERR   ) BL_Data[15]|= 0x40;   //S8    电机缺相故障
+  32   1  =1          if( bike->bBraked               ) BL_Data[15]|= 0x40;   //S8    刹车
+  33   1  =1  
+  34   1  =1    /***************************Battery Area Display**********************************/
+  35   1  =1          BL_Data[16]|= 0x10;
+  36   1  =1          switch ( GetBatStatus(sBike.uiBatVoltage) ){
+  37   2  =1      case 0:
+  38   2  =1                  if ( flashflag < 5 ) 
+  39   2  =1                          BL_Data[16]&=~0x10;break;
+  40   2  =1      case 1: BL_Data[3] |= 0x10;break;
+  41   2  =1      case 2: BL_Data[3] |= 0x30;break;
+  42   2  =1      case 3: BL_Data[3] |= 0x70;break;
+  43   2  =1      case 4: BL_Data[3] |= 0xF0;break;
+  44   2  =1      case 5: BL_Data[3] |= 0xF0;BL_Data[ 9] |= 0x80;break;
+  45   2  =1      case 6: BL_Data[3] |= 0xF0;BL_Data[ 9] |= 0xC0;break;      
+  46   2  =1      case 7: BL_Data[3] |= 0xF0;BL_Data[ 9] |= 0xE0;break;
+  47   2  =1      case 8: BL_Data[3] |= 0xF0;BL_Data[ 9] |= 0xF0;break;          
+  48   2  =1      default:break; 
+  49   2  =1          }
+  50   1  =1  
+  51   1  =1          /***************************Temp Area Display**********************************/
+  52   1  =1          BL_Data[3] |= (SegDataTemp[abs(bike->siTemperature/10)%10] & 0xF);
+  53   1  =1          BL_Data[4] |= (SegDataTemp[abs(bike->siTemperature/10)%10] & 0xF0);
+  54   1  =1          BL_Data[4] |= (SegDataTemp[abs(bike->siTemperature/10)/10] & 0xF);       
+  55   1  =1          BL_Data[5] |= (SegDataTemp[abs(bike->siTemperature/10)/10] & 0xF0);  
+  56   1  =1          BL_Data[3] |= 0x1;
+  57   1  =1          if (bike->siTemperature < 0)
+  58   1  =1                  BL_Data[4] |= 0x01;       
+  59   1  =1                  
+  60   1  =1          /***************************Time Area Display**********************************/
+  61   1  =1  #if ( TIME_ENABLE == 1 )
+           =1         if ( bike->bHasTimer ){
+           =1                 //DISPLAY 1 
+           =1                 if(bike->ucHour > 9) BL_Data[8] |= 0x08; else BL_Data[8] |= 0x00;     
+           =1                 BL_Data[8] |= ( SegDataTime[(bike->ucHour/10    )%10]);
+           =1                 BL_Data[7] |= ( SegDataTime[(bike->ucMinute/10  )%10]);
+           =1                 BL_Data[6] |= ( SegDataTime[ bike->ucMinute              %10]);       
+           =1                 if ( bike->bTimeSet ){
+           =1                         switch ( bike->ucTimePos ){
+           =1                         case 0:
+           =1                                 if ( flashflag < 5  ) { 
+           =1                                         BL_Data[8] &= 0xF7; 
+           =1                                         BL_Data[8] &= 0x08; 
+           =1                                         BL_Data[7] &= 0x08; 
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 29  
+
+           =1                                         BL_Data[6] &= 0x08;
+           =1                                 }
+           =1                                 break;                  
+           =1                         case 1:if ( flashflag < 5  ) BL_Data[8] &= 0x08; break;
+           =1                         case 2:if ( flashflag < 5  ) BL_Data[7] &= 0x08; break;
+           =1                         case 3:if ( flashflag < 5  ) BL_Data[6] &= 0x08; break;
+           =1                         default:break;          
+           =1                         }
+           =1                         BL_Data[7] |= 0x08;
+           =1                 } else if ( flashflag < 5 ) BL_Data[7] |= 0x08; //col
+           =1         }
+           =1 #endif
+  87   1  =1          
+  88   1  =1          /*************************** Voltage Display**********************************/
+  89   1  =1          BL_Data[2] |= (SegDataVoltage[ bike->uiBatVoltage                %10]) | 0x8;
+  90   1  =1          BL_Data[1] |= (SegDataVoltage[(bike->uiBatVoltage/10    )%10]) | 0x8;
+  91   1  =1          BL_Data[0] |= (SegDataVoltage[(bike->uiBatVoltage/100   )%10]); 
+  92   1  =1          // BL_Data[2] |= (SegDataVoltage[ bike->uiBatVoltage/10 %10]) | 0x8;
+  93   1  =1          // BL_Data[1] |= (SegDataVoltage[(bike->uiBatVoltage/100)%10]);
+  94   1  =1  
+  95   1  =1          /*************************** Mile Display**********************************/  
+  96   1  =1          if ( bike->bMileFlash == 0 || flashflag >= 5 ) {
+  97   2  =1          BL_Data[12] |= (SegDataMile [ bike->ulMile               %10]) | 0x1;
+  98   2  =1          BL_Data[11] |= (SegDataMile [(bike->ulMile/10   )%10]);
+  99   2  =1          BL_Data[10] |= (SegDataMile [(bike->ulMile/100  )%10]); 
+ 100   2  =1          BL_Data[ 9] |= (SegDataMile [(bike->ulMile/1000 )%10] & 0x0F); 
+ 101   2  =1          BL_Data[15] |= (SegDataMile [(bike->ulMile/1000 )%10] >> 4);
+ 102   2  =1          BL_Data[16] |= (SegDataMile2[(bike->ulMile/10000)%10]); 
+ 103   2  =1          }               
+ 104   1  =1  
+ 105   1  =1          /*************************** Speed Display**********************************/
+ 106   1  =1          if ( bike->bSpeedFlash == 0 || flashflag >= 5 ) {
+ 107   2  =1          BL_Data[14] |= (SegDataSpeed[ bike->ucSpeed             %10]);
+ 108   2  =1          BL_Data[13] |= (SegDataSpeed[(bike->ucSpeed/10) %10]); 
+ 109   2  =1          BL_Data[14] |= 0x80;
+ 110   2  =1          }
+ 111   1  =1  
+ 112   1  =1          /*************************** Mode Display**********************************/ 
+ 113   1  =1          switch (bike->ucSpeedMode){
+ 114   2  =1      case 1: BL_Data[11] |= 0x01;break;
+ 115   2  =1      case 2: BL_Data[10] |= 0x01;break;
+ 116   2  =1      case 3: BL_Data[9 ] |= 0x01;break;
+ 117   2  =1          case 4: BL_Data[13] |= 0x80;break;
+ 118   2  =1      default:
+ 119   2  =1                          BL_Data[11] &= ~0x01;
+ 120   2  =1                          BL_Data[10] &= ~0x01;
+ 121   2  =1                          BL_Data[ 9] &= ~0x01;
+ 122   2  =1                          BL_Data[13] &= ~0x80;
+ 123   2  =1                          break;
+ 124   2  =1          }
+ 125   1  =1    
+ 126   1  =1          BL_Write_Data(0,18,BL_Data);
+ 127   1  =1  }
+ 128      =1  
+ 129      =1  
    5          #elif ( defined LCD8794GCT )
                       #include "display_8794GCT.c"
               #elif ( defined LCD6040 )
                       #include "display_6040.c"
+              #elif ( defined TM1640 )
+                      #include "display_TM1640.c"
+              #elif ( defined TM1624 )
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 30  
+
+                      #include "display_TM1624.c"
+              #else
+                      #error "Please select a display type!!!"
               #endif
+  16          
+  17          
+  18          
+  19          
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 31  
+
+NAME                                    CLASS   MSPACE  TYPE    OFFSET  SIZE
+====                                    =====   ======  ====    ======  ====
+
+
+OutsideOsc . . . . . . . . . . . . . .  E_CONST  -----  U_CHAR   -----  1
+SegDataSpeed . . . . . . . . . . . . .  PUBLIC   XDATA  ARRAY    0000H  10
+size_t . . . . . . . . . . . . . . . .  TYPEDEF  -----  U_INT    -----  2
+BLState. . . . . . . . . . . . . . . .  TYPEDEF  -----  U_CHAR   -----  1
+BL_ENABLE. . . . . . . . . . . . . . .  E_CONST  -----  U_CHAR   -----  1
+HighPowerMode. . . . . . . . . . . . .  E_CONST  -----  U_CHAR   -----  1
+BLFrameFreq_TypeDef. . . . . . . . . .  TYPEDEF  -----  U_CHAR   -----  1
+InnerOsc . . . . . . . . . . . . . . .  E_CONST  -----  U_CHAR   -----  1
+BLBias_TypeDef . . . . . . . . . . . .  TYPEDEF  -----  U_CHAR   -----  1
+pBIKE_CONFIG . . . . . . . . . . . . .  TYPEDEF  -----  PTR      -----  3
+SegDataMile. . . . . . . . . . . . . .  PUBLIC   XDATA  ARRAY    000AH  10
+BL_PowerSave_TypeDef . . . . . . . . .  TYPEDEF  -----  U_CHAR   -----  1
+BLDriveMode_TypeDef. . . . . . . . . .  TYPEDEF  -----  U_CHAR   -----  1
+flashflag. . . . . . . . . . . . . . .  PUBLIC   XDATA  U_CHAR   0014H  1
+SegDataTime. . . . . . . . . . . . . .  PUBLIC   XDATA  ARRAY    0015H  10
+DispOff. . . . . . . . . . . . . . . .  E_CONST  -----  U_CHAR   -----  1
+FrameInversion . . . . . . . . . . . .  E_CONST  -----  U_CHAR   -----  1
+BL_OscMode_TypeDef . . . . . . . . . .  TYPEDEF  -----  U_CHAR   -----  1
+BIKE_CONFIG. . . . . . . . . . . . . .  TYPEDEF  -----  STRUCT   -----  25
+  ucBike . . . . . . . . . . . . . . .  MEMBER   -----  ARRAY    0000H  4
+  uiVersion. . . . . . . . . . . . . .  MEMBER   -----  U_INT    0004H  2
+  uiSysVoltage . . . . . . . . . . . .  MEMBER   -----  U_INT    0006H  2
+  uiVolScale . . . . . . . . . . . . .  MEMBER   -----  U_INT    0008H  2
+  uiVolScale2. . . . . . . . . . . . .  MEMBER   -----  U_INT    000AH  2
+  uiTempScale. . . . . . . . . . . . .  MEMBER   -----  U_INT    000CH  2
+  uiSpeedScale . . . . . . . . . . . .  MEMBER   -----  U_INT    000EH  2
+  uiYXT_SpeedScale . . . . . . . . . .  MEMBER   -----  U_INT    0010H  2
+  uiSingleTrip . . . . . . . . . . . .  MEMBER   -----  U_INT    0012H  2
+  ulMile . . . . . . . . . . . . . . .  MEMBER   -----  U_LONG   0014H  4
+  ucSum. . . . . . . . . . . . . . . .  MEMBER   -----  U_CHAR   0018H  1
+SegDataTemp. . . . . . . . . . . . . .  PUBLIC   XDATA  ARRAY    001FH  10
+_abs . . . . . . . . . . . . . . . . .  EXTERN   CODE   PROC     -----  -----
+BL_Blinking_TypeDef. . . . . . . . . .  TYPEDEF  -----  U_CHAR   -----  1
+BL_InitTypeDef . . . . . . . . . . . .  TYPEDEF  -----  STRUCT   -----  10
+  BL_DispMode. . . . . . . . . . . . .  MEMBER   -----  U_CHAR   0000H  1
+  BL_Bias. . . . . . . . . . . . . . .  MEMBER   -----  U_CHAR   0001H  1
+  BL_FrameFreq . . . . . . . . . . . .  MEMBER   -----  U_CHAR   0002H  1
+  BL_DriveMode . . . . . . . . . . . .  MEMBER   -----  U_CHAR   0003H  1
+  BL_PowerSave . . . . . . . . . . . .  MEMBER   -----  U_CHAR   0004H  1
+  BL_SoftResetCmd. . . . . . . . . . .  MEMBER   -----  U_CHAR   0005H  1
+  BL_OscMode . . . . . . . . . . . . .  MEMBER   -----  U_CHAR   0006H  1
+  Bl_Blinking. . . . . . . . . . . . .  MEMBER   -----  U_CHAR   0007H  1
+  BL_AllPixelOnCmd . . . . . . . . . .  MEMBER   -----  U_CHAR   0008H  1
+  BL_AllPixelOffCmd. . . . . . . . . .  MEMBER   -----  U_CHAR   0009H  1
+BLDispMode_TypeDef . . . . . . . . . .  TYPEDEF  -----  U_CHAR   -----  1
+_GetBatStatus. . . . . . . . . . . . .  EXTERN   CODE   PROC     -----  -----
+BLAllPixel_TypeDef . . . . . . . . . .  TYPEDEF  -----  U_CHAR   -----  1
+LineInversion. . . . . . . . . . . . .  E_CONST  -----  U_CHAR   -----  1
+BlinkingOff. . . . . . . . . . . . . .  E_CONST  -----  U_CHAR   -----  1
+DispOn . . . . . . . . . . . . . . . .  E_CONST  -----  U_CHAR   -----  1
+pBIKE_STATUS . . . . . . . . . . . . .  TYPEDEF  -----  PTR      -----  3
+Alloff . . . . . . . . . . . . . . . .  E_CONST  -----  U_CHAR   -----  1
+AllOn. . . . . . . . . . . . . . . . .  E_CONST  -----  U_CHAR   -----  1
+SegDataMile2 . . . . . . . . . . . . .  PUBLIC   XDATA  ARRAY    0029H  10
+_BL_Write_Data . . . . . . . . . . . .  EXTERN   CODE   PROC     -----  -----
+OneHalfOfBias. . . . . . . . . . . . .  E_CONST  -----  U_CHAR   -----  1
+_Display . . . . . . . . . . . . . . .  PUBLIC   CODE   PROC     0000H  -----
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 32  
+
+NAME                                    CLASS   MSPACE  TYPE    OFFSET  SIZE
+====                                    =====   ======  ====    ======  ====
+
+
+  bike . . . . . . . . . . . . . . . .  AUTO     XDATA  PTR      0000H  3
+  i. . . . . . . . . . . . . . . . . .  * REG *  DATA   U_CHAR   0007H  1
+OneThirdOfBias . . . . . . . . . . . .  E_CONST  -----  U_CHAR   -----  1
+PowerSaveMode1 . . . . . . . . . . . .  E_CONST  -----  U_CHAR   -----  1
+PowerSaveMode2 . . . . . . . . . . . .  E_CONST  -----  U_CHAR   -----  1
+BIKE_STATUS. . . . . . . . . . . . . .  TYPEDEF  -----  STRUCT   -----  32
+  bLFlashType. . . . . . . . . . . . .  MEMBER   -----  FIELD    0000H  1.0
+  bRFlashType. . . . . . . . . . . . .  MEMBER   -----  FIELD    0000H  1.1
+  bLeftFlash . . . . . . . . . . . . .  MEMBER   -----  FIELD    0000H  1.2
+  bRightFlash. . . . . . . . . . . . .  MEMBER   -----  FIELD    0000H  1.3
+  bTurnLeft. . . . . . . . . . . . . .  MEMBER   -----  FIELD    0000H  1.4
+  bTurnRight . . . . . . . . . . . . .  MEMBER   -----  FIELD    0000H  1.5
+  bNearLight . . . . . . . . . . . . .  MEMBER   -----  FIELD    0000H  1.6
+  bLastNear. . . . . . . . . . . . . .  MEMBER   -----  FIELD    0000H  1.7
+  bFarLight. . . . . . . . . . . . . .  MEMBER   -----  FIELD    0001H  1.0
+  bOverSpeed . . . . . . . . . . . . .  MEMBER   -----  FIELD    0001H  1.1
+  bHotReset. . . . . . . . . . . . . .  MEMBER   -----  FIELD    0001H  1.2
+  bLcdFresh. . . . . . . . . . . . . .  MEMBER   -----  FIELD    0001H  1.3
+  bMileFlash . . . . . . . . . . . . .  MEMBER   -----  FIELD    0001H  1.4
+  bSpeedFlash. . . . . . . . . . . . .  MEMBER   -----  FIELD    0001H  1.5
+  bYXTERR. . . . . . . . . . . . . . .  MEMBER   -----  FIELD    0001H  1.6
+  bCruise. . . . . . . . . . . . . . .  MEMBER   -----  FIELD    0001H  1.7
+  bBraked. . . . . . . . . . . . . . .  MEMBER   -----  FIELD    0002H  1.0
+  bECUERR. . . . . . . . . . . . . . .  MEMBER   -----  FIELD    0002H  1.1
+  bPhaseERR. . . . . . . . . . . . . .  MEMBER   -----  FIELD    0002H  1.2
+  bHallERR . . . . . . . . . . . . . .  MEMBER   -----  FIELD    0002H  1.3
+  bWheelERR. . . . . . . . . . . . . .  MEMBER   -----  FIELD    0002H  1.4
+  bECO . . . . . . . . . . . . . . . .  MEMBER   -----  FIELD    0002H  1.5
+  bRCHG. . . . . . . . . . . . . . . .  MEMBER   -----  FIELD    0002H  1.6
+  bParking . . . . . . . . . . . . . .  MEMBER   -----  FIELD    0002H  1.7
+  bHasTimer. . . . . . . . . . . . . .  MEMBER   -----  FIELD    0003H  1.0
+  bUart. . . . . . . . . . . . . . . .  MEMBER   -----  FIELD    0003H  1.1
+  bTimeSet . . . . . . . . . . . . . .  MEMBER   -----  FIELD    0003H  1.2
+  bBT. . . . . . . . . . . . . . . . .  MEMBER   -----  FIELD    0003H  1.3
+  ucSpeedMode. . . . . . . . . . . . .  MEMBER   -----  U_CHAR   0004H  1
+  siTemperature. . . . . . . . . . . .  MEMBER   -----  INT      0005H  2
+  uiBatVoltage . . . . . . . . . . . .  MEMBER   -----  U_INT    0007H  2
+  uiBatVoltage2. . . . . . . . . . . .  MEMBER   -----  U_INT    0009H  2
+  ucSpeed. . . . . . . . . . . . . . .  MEMBER   -----  U_CHAR   000BH  1
+  ucPHA_Speed. . . . . . . . . . . . .  MEMBER   -----  U_CHAR   000CH  1
+  ucYXT_Speed. . . . . . . . . . . . .  MEMBER   -----  U_CHAR   000DH  1
+  ulMile . . . . . . . . . . . . . . .  MEMBER   -----  U_LONG   000EH  4
+  ulFMile. . . . . . . . . . . . . . .  MEMBER   -----  U_LONG   0012H  4
+  uiTick . . . . . . . . . . . . . . .  MEMBER   -----  U_INT    0016H  2
+  uiHallCounter. . . . . . . . . . . .  MEMBER   -----  U_INT    0018H  2
+  uiHallCounter_250ms. . . . . . . . .  MEMBER   -----  U_INT    001AH  2
+  ucHour . . . . . . . . . . . . . . .  MEMBER   -----  U_CHAR   001CH  1
+  ucMinute . . . . . . . . . . . . . .  MEMBER   -----  U_CHAR   001DH  1
+  ucSecond . . . . . . . . . . . . . .  MEMBER   -----  U_CHAR   001EH  1
+  ucTimePos. . . . . . . . . . . . . .  MEMBER   -----  U_CHAR   001FH  1
+BL_DISABLE . . . . . . . . . . . . . .  E_CONST  -----  U_CHAR   -----  1
+Blinking1_00Hz . . . . . . . . . . . .  E_CONST  -----  U_CHAR   -----  1
+BL_Data. . . . . . . . . . . . . . . .  PUBLIC   XDATA  ARRAY    0033H  19
+Blinking0_50Hz . . . . . . . . . . . .  E_CONST  -----  U_CHAR   -----  1
+wchar_t. . . . . . . . . . . . . . . .  TYPEDEF  -----  CHAR     -----  1
+Blinking0_25Hz . . . . . . . . . . . .  E_CONST  -----  U_CHAR   -----  1
+sBike. . . . . . . . . . . . . . . . .  EXTERN   XDATA  STRUCT   -----  32
+C51 COMPILER V9.50a   DISPLAY                                                              01/08/2018 11:47:39 PAGE 33  
+
+NAME                                    CLASS   MSPACE  TYPE    OFFSET  SIZE
+====                                    =====   ======  ====    ======  ====
+
+
+SegDataVoltage . . . . . . . . . . . .  PUBLIC   XDATA  ARRAY    0046H  10
+NormalMode . . . . . . . . . . . . . .  E_CONST  -----  U_CHAR   -----  1
+BL_FrameFreq_50Hz. . . . . . . . . . .  E_CONST  -----  U_CHAR   -----  1
+BL_FrameFreq_71Hz. . . . . . . . . . .  E_CONST  -----  U_CHAR   -----  1
+BL_FrameFreq_80Hz. . . . . . . . . . .  E_CONST  -----  U_CHAR   -----  1
+BL_FrameFreq_64Hz. . . . . . . . . . .  E_CONST  -----  U_CHAR   -----  1
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   1515    ----
+   CODE SIZE        =   1396    ----
    CONSTANT SIZE    =   ----    ----
-   XDATA SIZE       =     80       7
+   XDATA SIZE       =     80       3
    PDATA SIZE       =   ----    ----
    DATA SIZE        =   ----    ----
    IDATA SIZE       =   ----    ----

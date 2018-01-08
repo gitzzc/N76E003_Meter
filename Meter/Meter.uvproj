@@ -190,10 +190,10 @@
             <RomSize>2</RomSize>
             <DataHold>0</DataHold>
             <XDataHold>0</XDataHold>
-            <UseOnchipRom>0</UseOnchipRom>
+            <UseOnchipRom>1</UseOnchipRom>
             <UseOnchipArithmetic>0</UseOnchipArithmetic>
             <UseMultipleDPTR>0</UseMultipleDPTR>
-            <UseOnchipXram>0</UseOnchipXram>
+            <UseOnchipXram>1</UseOnchipXram>
             <HadIRAM>1</HadIRAM>
             <HadXRAM>1</HadXRAM>
             <HadIROM>1</HadIROM>
@@ -397,6 +397,11 @@
               <FileName>yxt.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Code\yxt.c</FilePath>
+            </File>
+            <File>
+              <FileName>TM16XX.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Code\TM16XX.c</FilePath>
             </File>
           </Files>
         </Group>

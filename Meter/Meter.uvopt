@@ -51,14 +51,14 @@
         <CreateCListing>1</CreateCListing>
         <CreateAListing>1</CreateAListing>
         <CreateLListing>1</CreateLListing>
-        <CreateIListing>0</CreateIListing>
+        <CreateIListing>1</CreateIListing>
         <AsmCond>1</AsmCond>
         <AsmSymb>1</AsmSymb>
         <AsmXref>0</AsmXref>
         <CCond>1</CCond>
         <CCode>0</CCode>
-        <CListInc>0</CListInc>
-        <CSymb>0</CSymb>
+        <CListInc>1</CListInc>
+        <CSymb>1</CSymb>
         <LinkerCodeListing>0</LinkerCodeListing>
       </ListingPage>
       <OPTXL>
@@ -69,7 +69,7 @@
         <LLines>1</LLines>
         <LLocSym>1</LLocSym>
         <LPubSym>1</LPubSym>
-        <LXref>0</LXref>
+        <LXref>1</LXref>
         <LExpSel>0</LExpSel>
       </OPTXL>
       <OPTFL>
@@ -143,7 +143,7 @@
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>Code\ADC.C</Filename>
+          <Filename>M:\HC\nuvoton\N76E003_Meter\Meter\Code\ADC.C</Filename>
           <ExecCommand></ExecCommand>
           <Expression></Expression>
         </Bp>
@@ -159,7 +159,7 @@
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>Code\YXT.C</Filename>
+          <Filename>M:\HC\nuvoton\N76E003_Meter\Meter\Code\YXT.C</Filename>
           <ExecCommand></ExecCommand>
           <Expression>\\GPIO\YXT\19</Expression>
         </Bp>
@@ -336,6 +336,19 @@
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
+    <File>
+      <GroupNumber>1</GroupNumber>
+      <FileNumber>8</FileNumber>
+      <FileType>1</FileType>
+      <tvExp>0</tvExp>
+      <Focus>0</Focus>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <bDave2>0</bDave2>
+      <PathWithFileName>.\Code\TM16XX.c</PathWithFileName>
+      <FilenameWithoutPath>TM16XX.c</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
   </Group>
 
   <Group>
@@ -346,7 +359,7 @@
     <RteFlg>0</RteFlg>
     <File>
       <GroupNumber>2</GroupNumber>
-      <FileNumber>8</FileNumber>
+      <FileNumber>9</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
@@ -359,7 +372,7 @@
     </File>
     <File>
       <GroupNumber>2</GroupNumber>
-      <FileNumber>9</FileNumber>
+      <FileNumber>10</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
@@ -374,13 +387,13 @@
 
   <Group>
     <GroupName>Startup</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
     <File>
       <GroupNumber>3</GroupNumber>
-      <FileNumber>10</FileNumber>
+      <FileNumber>11</FileNumber>
       <FileType>2</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>

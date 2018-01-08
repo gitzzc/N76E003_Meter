@@ -149,7 +149,6 @@ void YXT_Task(BIKE_STATUS *bike,BIKE_CONFIG* config)
 #ifdef JIKE13050	
 		if ( (YXT_Status[2] & (1<<3)) )	bike->bRCHG    = 1; else bike->bRCHG    = 0;
 		if ( (YXT_Status[2] & (1<<6)) )	bike->bParking = 0; else bike->bParking = 1;
-		
 #endif
 	
 		bike->ucSpeedMode = ((YXT_Status[2]>>5)&0x04)|(YXT_Status[2]&0x03);
